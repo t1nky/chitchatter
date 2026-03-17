@@ -1,35 +1,41 @@
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
+import GitHubIcon from '@mui/icons-material/GitHub'
 import IconButton from '@mui/material/IconButton'
+import MenuItem from '@mui/material/MenuItem'
+import MuiLink from '@mui/material/Link'
+import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import useTheme from '@mui/material/styles/useTheme'
-import { Cached } from '@mui/icons-material'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Typography from '@mui/material/Typography'
+import { Cached, ExpandMore } from '@mui/icons-material'
 import styled from '@mui/material/styles/styled'
-import GitHubIcon from '@mui/icons-material/GitHub'
-import MuiLink from '@mui/material/Link'
-import Divider from '@mui/material/Divider'
-
-import Logo from 'img/logo.svg?react'
+import useTheme from '@mui/material/styles/useTheme'
 
 import { Form, Main } from 'components/Elements'
-import { PeerNameDisplay } from 'components/PeerNameDisplay'
 import { EnhancedConnectivityControl } from 'components/EnhancedConnectivityControl'
-import { SettingsContext } from 'contexts/SettingsContext'
+import { PeerNameDisplay } from 'components/PeerNameDisplay'
 import { routes } from 'config/routes'
+import { SettingsContext } from 'contexts/SettingsContext'
+import Logo from 'img/logo.svg?react'
+import { getLanguageLabel, t } from 'i18n'
 import { RoomNameType } from 'lib/RoomNameGenerator'
+import { Language } from 'models/settings'
 
 import { isEnhancedConnectivityAvailable } from '../../config/enhancedConnectivity'
 
-import { useHome } from './useHome'
-import { EmbedCodeDialog } from './EmbedCodeDialog'
 import { CommunityRoomSelector } from './CommunityRoomSelector'
+import { EmbedCodeDialog } from './EmbedCodeDialog'
+import { useHome } from './useHome'
 
 const StyledLogo = styled(Logo)({})
 
@@ -40,7 +46,7 @@ export interface HomeProps {
 export function Home({ userId }: HomeProps) {
   const theme = useTheme()
   const { updateUserSettings, getUserSettings } = useContext(SettingsContext)
-  const { isEnhancedConnectivityEnabled } = getUserSettings()
+  const { isEnhancedConnectivityEnabled, language } = getUserSettings()
   const {
     roomName,
     roomNameType,
@@ -62,6 +68,14 @@ export function Home({ userId }: HomeProps) {
   ) => {
     updateUserSettings({
       isEnhancedConnectivityEnabled: newIsEnhancedConnectivityEnabled,
+    })
+  }
+
+  const handleLanguageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    await updateUserSettings({
+      language: event.target.value as Language,
     })
   }
 
@@ -95,113 +109,161 @@ export function Home({ userId }: HomeProps) {
           onSubmit={handleFormSubmit}
           sx={{ maxWidth: theme.breakpoints.values.sm, mx: 'auto' }}
         >
-          <Typography sx={{ mb: 2 }}>
-            Your username:{' '}
-            <PeerNameDisplay paragraph={false} sx={{ fontWeight: 'bold' }}>
-              {userId}
-            </PeerNameDisplay>
-          </Typography>
-          <FormControl fullWidth>
-            <TextField
-              label="Room name (generated on your device)"
-              variant="outlined"
-              value={roomName}
-              onChange={handleRoomNameChange}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    aria-label="Regenerate room id"
-                    onClick={regenerateRoomName}
-                    size="small"
-                  >
-                    <Cached />
-                  </IconButton>
-                ),
-                sx: { fontSize: { xs: '0.9rem', sm: '1rem' } },
+          <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 }, textAlign: 'left' }}>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: theme.typography.h4.fontSize, sm: '2.4rem' },
+                fontWeight: theme.typography.fontWeightBold,
+                lineHeight: 1.1,
+                mb: 1.5,
               }}
-              size="medium"
-            />
-          </FormControl>
-          <Box sx={{ mt: 2, mb: 2 }}>
-            <ToggleButtonGroup
-              value={roomNameType}
-              exclusive
-              onChange={handleRoomNameTypeChange}
-              aria-label="room name type"
-              size="small"
             >
-              <ToggleButton value={RoomNameType.UUID} aria-label="UUID">
-                UUID
-              </ToggleButton>
-              <ToggleButton
-                value={RoomNameType.PASSPHRASE}
-                aria-label="Passphrase"
+              {t(language, 'homeTitle')}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              {t(language, 'homeSubtitle')}
+            </Typography>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <TextField
+                select
+                label={t(language, 'language')}
+                value={language}
+                onChange={handleLanguageChange}
+                helperText={t(language, 'languageHelp')}
               >
-                Passphrase
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 1,
-              mt: 2,
-            }}
-          >
-            <Button
-              variant="contained"
-              onClick={handleJoinPublicRoomClick}
-              sx={{
-                marginTop: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Join public room
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleJoinPrivateRoomClick}
-              sx={{
-                marginTop: 2,
-                marginLeft: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Join private room
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleGetEmbedCodeClick}
-              sx={{
-                marginTop: 2,
-                marginLeft: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Get embed code
-            </Button>
-          </Box>
+                {Object.values(Language).map(languageOption => (
+                  <MenuItem key={languageOption} value={languageOption}>
+                    {getLanguageLabel(languageOption)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </FormControl>
+            <Typography sx={{ mb: 2 }}>
+              {t(language, 'yourName')}:{' '}
+              <PeerNameDisplay paragraph={false} sx={{ fontWeight: 'bold' }}>
+                {userId}
+              </PeerNameDisplay>
+            </Typography>
+            <FormControl fullWidth>
+              <TextField
+                label={t(language, 'roomNameLabel')}
+                variant="outlined"
+                value={roomName}
+                onChange={handleRoomNameChange}
+                helperText={t(language, 'roomNameHelp')}
+                InputProps={{
+                  endAdornment: (
+                    <IconButton
+                      aria-label={t(language, 'regenerateRoomId')}
+                      onClick={regenerateRoomName}
+                      size="small"
+                    >
+                      <Cached />
+                    </IconButton>
+                  ),
+                }}
+              />
+            </FormControl>
+            <Box sx={{ mt: 2, mb: 3 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: theme.palette.text.secondary, mb: 1 }}
+              >
+                {t(language, 'roomNameType')}
+              </Typography>
+              <ToggleButtonGroup
+                value={roomNameType}
+                exclusive
+                onChange={handleRoomNameTypeChange}
+                aria-label={t(language, 'roomNameType')}
+                size="small"
+              >
+                <ToggleButton
+                  value={RoomNameType.PASSPHRASE}
+                  aria-label={t(language, 'readableWords')}
+                >
+                  {t(language, 'readableWords')}
+                </ToggleButton>
+                <ToggleButton
+                  value={RoomNameType.UUID}
+                  aria-label={t(language, 'technicalId')}
+                >
+                  {t(language, 'technicalId')}
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+            <Box sx={{ display: 'grid', gap: 1.5 }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleJoinPrivateRoomClick}
+                disabled={!isRoomNameValid}
+              >
+                {t(language, 'startPrivateRoom')}
+              </Button>
+              <Typography
+                variant="body2"
+                sx={{ color: theme.palette.text.secondary }}
+              >
+                {t(language, 'startPrivateRoomHelp')}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={handleJoinPublicRoomClick}
+                disabled={!isRoomNameValid}
+              >
+                {t(language, 'openPublicRoom')}
+              </Button>
+              <Typography
+                variant="body2"
+                sx={{ color: theme.palette.text.secondary }}
+              >
+                {t(language, 'openPublicRoomHelp')}
+              </Typography>
+            </Box>
+          </Paper>
+          <Accordion sx={{ mt: 2, textAlign: 'left' }}>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Box>
+                <Typography fontWeight={theme.typography.fontWeightMedium}>
+                  {t(language, 'advancedOptions')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t(language, 'advancedOptionsHelp')}
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box sx={{ display: 'grid', gap: 2 }}>
+                <Box>
+                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                    {t(language, 'communityRooms')}
+                  </Typography>
+                  <CommunityRoomSelector />
+                </Box>
+                {isEnhancedConnectivityAvailable && (
+                  <EnhancedConnectivityControl
+                    isEnabled={isEnhancedConnectivityEnabled}
+                    onChange={handleIsEnhancedConnectivityEnabledChange}
+                    showSecondaryColor={true}
+                  />
+                )}
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleGetEmbedCodeClick}
+                  disabled={!isRoomNameValid}
+                >
+                  {t(language, 'embedCode')}
+                </Button>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
         </Form>
       </Main>
       <Box component="section" aria-label="Additional options and information">
-        <Divider sx={{ my: 2 }} />
-        <Box maxWidth={theme.breakpoints.values.sm} mx="auto" px={2}>
-          <CommunityRoomSelector />
-        </Box>
-        {isEnhancedConnectivityAvailable && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Box maxWidth={theme.breakpoints.values.sm} mx="auto" px={2}>
-              <EnhancedConnectivityControl
-                isEnabled={isEnhancedConnectivityEnabled}
-                onChange={handleIsEnhancedConnectivityEnabledChange}
-                showSecondaryColor={true}
-              />
-            </Box>
-          </>
-        )}
         <Divider sx={{ my: 2 }} />
         <Box
           sx={{
@@ -212,10 +274,7 @@ export function Home({ userId }: HomeProps) {
           }}
         >
           <Typography variant="body1">
-            This is a free communication tool that is designed for simplicity,
-            privacy, and security. All interaction between you and your online
-            peers is encrypted. There is no record of your conversation once you
-            all leave.
+            {t(language, 'privacySummary')}
           </Typography>
         </Box>
         <Box
@@ -228,7 +287,7 @@ export function Home({ userId }: HomeProps) {
           }}
         >
           <MuiLink
-            href="https://github.com/jeremyckahn/chitchatter"
+            href={import.meta.env.VITE_GITHUB_REPO}
             target="_blank"
             sx={() => ({
               color: theme.palette.text.primary,
@@ -244,19 +303,19 @@ export function Home({ userId }: HomeProps) {
             </IconButton>
           </MuiLink>
           <Typography variant="body1" sx={{ textAlign: 'center', mb: 1 }}>
-            Licensed under{' '}
+            {t(language, 'sourceCode')} under{' '}
             <MuiLink
               href="https://github.com/jeremyckahn/chitchatter/blob/develop/LICENSE"
               target="_blank"
             >
               GPL v2
             </MuiLink>
-            . Please{' '}
+            . Please read the{' '}
             <MuiLink
               href="https://github.com/jeremyckahn/chitchatter/blob/develop/README.md"
               target="_blank"
             >
-              read the docs
+              {t(language, 'docs')}
             </MuiLink>
             .
           </Typography>

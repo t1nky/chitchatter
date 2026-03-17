@@ -12,6 +12,7 @@ import { WholePageLoading } from 'components/Loading/Loading'
 import { ColorMode, UserSettings } from 'models/settings'
 
 import { DEFAULT_SOUND } from 'config/soundNames'
+import { getPreferredLanguage } from 'i18n'
 
 import type { BootstrapProps } from './Bootstrap'
 
@@ -39,6 +40,7 @@ const Init = ({ getUuid = uuid, ...props }: InitProps) => {
           userId: getUuid(),
           customUsername: '',
           colorMode: ColorMode.DARK,
+          language: getPreferredLanguage(window.navigator.language),
           playSoundOnNewMessage: true,
           showNotificationOnNewMessage: true,
           showActiveTypingStatus: true,

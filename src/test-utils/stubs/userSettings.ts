@@ -1,4 +1,4 @@
-import { ColorMode, UserSettings } from 'models/settings'
+import { ColorMode, Language, UserSettings } from 'models/settings'
 import { encryption } from 'services/Encryption'
 
 import { DEFAULT_SOUND } from 'config/soundNames'
@@ -10,6 +10,7 @@ export const userSettingsStubFactory = (
     userId: '1234-abcd',
     customUsername: '',
     colorMode: ColorMode.DARK,
+    language: Language.ENGLISH,
     playSoundOnNewMessage: true,
     showNotificationOnNewMessage: true,
     showActiveTypingStatus: true,

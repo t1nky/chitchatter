@@ -158,6 +158,14 @@ function getRtcConfig() {
 }
 
 // CORS configuration
+const configuredAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
+
+const primaryAppOrigin =
+  process.env.PRIMARY_APP_ORIGIN || configuredAllowedOrigins[0]
+
 const allowedOrigins = [
   'https://chitchatter.im',
   'https://chitchatter.vercel.app',
@@ -165,6 +173,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Development frontend
   'http://localhost:3001', // API development
   'http://localhost:3003', // Simple API server
+  ...configuredAllowedOrigins,
 ]
 
 function getCorsOrigin(req) {
@@ -179,7 +188,7 @@ function getCorsOrigin(req) {
     return origin
   }
   // For same-origin requests or allowed deployments, use the primary domain
-  return 'https://chitchatter.im'
+  return primaryAppOrigin || 'https://chitchatter.im'
 }
 
 // API handler function

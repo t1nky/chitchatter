@@ -15,7 +15,7 @@ const rRoomNameAppPrefix =
 export const useHome = () => {
   const { setTitle } = useContext(ShellContext)
   const [roomNameType, setRoomNameType] = useState<RoomNameType>(
-    RoomNameType.UUID
+    RoomNameType.PASSPHRASE
   )
   const [roomName, setRoomName] = useState(() =>
     RoomNameGenerator.generate(roomNameType)

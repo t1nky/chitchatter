@@ -1,4 +1,5 @@
 /// <reference types="vitest" />
+import fs from 'fs'
 import path from 'path'
 
 import { fileURLToPath } from 'url'
@@ -18,6 +19,7 @@ const srcPaths = [
   'hooks',
   'config',
   'contexts',
+  'i18n',
   'lib',
   'models',
   'pages',
@@ -33,6 +35,9 @@ const srcPathAliases = srcPaths.reduce((acc, dir) => {
 }, {})
 
 const config = () => {
+  const outDir = path.resolve(__dirname, 'dist')
+  fs.mkdirSync(outDir, { recursive: true })
+
   return defineConfig({
     // NOTE: Uncomment this if you are hosting Chitchatter on GitHub Pages
     // without a custom domain. If you renamed the repo to something other than
@@ -50,6 +55,7 @@ const config = () => {
       },
     },
     build: {
+      outDir,
       // NOTE: This isn't really working. At the very least, it's still useful
       // for exposing source code to users.
       // See: https://github.com/vitejs/vite/issues/15012#issuecomment-1956429165

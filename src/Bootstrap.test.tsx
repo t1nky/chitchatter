@@ -54,6 +54,7 @@ test('updates persisted user settings', async () => {
     PersistedStorageKeys.USER_SETTINGS,
     {
       colorMode: 'dark',
+      language: 'en',
       userId: 'abc123',
       customUsername: '',
       playSoundOnNewMessage: true,

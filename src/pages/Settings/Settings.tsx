@@ -3,10 +3,12 @@ import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormGroup from '@mui/material/FormGroup'
+import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import useTheme from '@mui/material/styles/useTheme'
 import Switch from '@mui/material/Switch'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import useTheme from '@mui/material/styles/useTheme'
 import { ChangeEvent, useContext, useEffect, useState } from 'react'
 import FileReaderInput, { Result } from 'react-file-reader-input'
 
@@ -18,6 +20,8 @@ import { isEnhancedConnectivityAvailable } from 'config/enhancedConnectivity'
 import { SettingsContext } from 'contexts/SettingsContext'
 import { ShellContext } from 'contexts/ShellContext'
 import { StorageContext } from 'contexts/StorageContext'
+import { getLanguageLabel, t } from 'i18n'
+import { Language } from 'models/settings'
 import { notification } from 'services/Notification'
 import { settings } from 'services/Settings'
 
@@ -39,6 +43,7 @@ export const Settings = ({ userId }: SettingsProps) => {
   ] = useState(false)
   const [, setIsNotificationPermissionDetermined] = useState(false)
   const {
+    language,
     playSoundOnNewMessage,
     showNotificationOnNewMessage,
     showActiveTypingStatus,
@@ -51,15 +56,20 @@ export const Settings = ({ userId }: SettingsProps) => {
     ;(async () => {
       await notification.requestPermission()
 
-      // This state needs to be set to cause a rerender so that
-      // areNotificationsAvailable is up-to-date.
+      // This rerender keeps notification availability in sync with permission.
       setIsNotificationPermissionDetermined(true)
     })()
   }, [])
 
   useEffect(() => {
-    setTitle('Settings')
-  }, [setTitle])
+    setTitle(t(language, 'settingsTitle'))
+  }, [language, setTitle])
+
+  const handleLanguageChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    updateUserSettings({ language: event.target.value as Language })
+  }
 
   const handlePlaySoundOnNewMessageChange = (
     _event: ChangeEvent,
@@ -88,7 +98,6 @@ export const Settings = ({ userId }: SettingsProps) => {
     _event: ChangeEvent,
     newIsEnhancedConnectivityEnabled: boolean
   ) => {
-    // Only update if enhanced connectivity is available
     if (isEnhancedConnectivityAvailable) {
       updateUserSettings({
         isEnhancedConnectivityEnabled: newIsEnhancedConnectivityEnabled,
@@ -125,7 +134,7 @@ export const Settings = ({ userId }: SettingsProps) => {
 
       updateUserSettings(userSettings)
 
-      showAlert('Profile successfully imported', { severity: 'success' })
+      showAlert(t(language, 'profileImported'), { severity: 'success' })
     } catch (e) {
       if (isErrorWithMessage(e)) {
         showAlert(e.message, { severity: 'error' })
@@ -145,10 +154,36 @@ export const Settings = ({ userId }: SettingsProps) => {
           mb: 2,
         }}
       >
-        Chat
+        {t(language, 'settingsLanguageTitle')}
       </Typography>
       <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-        <Typography>When a message is received in the background:</Typography>
+        <TextField
+          select
+          fullWidth
+          label={t(language, 'language')}
+          value={language}
+          onChange={handleLanguageChange}
+          helperText={t(language, 'languageHelp')}
+        >
+          {Object.values(Language).map(languageOption => (
+            <MenuItem key={languageOption} value={languageOption}>
+              {getLanguageLabel(languageOption)}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Paper>
+      <Typography
+        variant="h2"
+        sx={{
+          fontSize: theme.typography.h3.fontSize,
+          fontWeight: theme.typography.fontWeightMedium,
+          mb: 2,
+        }}
+      >
+        {t(language, 'settingsChatTitle')}
+      </Typography>
+      <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+        <Typography>{t(language, 'chatBackgroundBehavior')}</Typography>
         <FormGroup>
           <FormControlLabel
             control={
@@ -157,7 +192,7 @@ export const Settings = ({ userId }: SettingsProps) => {
                 onChange={handlePlaySoundOnNewMessageChange}
               />
             }
-            label="Play a sound"
+            label={t(language, 'playSound')}
           />
           <FormControlLabel
             control={
@@ -169,12 +204,10 @@ export const Settings = ({ userId }: SettingsProps) => {
                 disabled={!areNotificationsAvailable}
               />
             }
-            label="Show a notification"
+            label={t(language, 'showNotification')}
           />
         </FormGroup>
-        <Typography mt={2}>
-          Select a sound that plays when you receive a message:
-        </Typography>
+        <Typography mt={2}>{t(language, 'soundSelectorLabel')}</Typography>
         <SoundSelector disabled={!playSoundOnNewMessage} />
       </Paper>
       <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
@@ -186,11 +219,11 @@ export const Settings = ({ userId }: SettingsProps) => {
                 onChange={handleShowActiveTypingStatusChange}
               />
             }
-            label="Show active typing indicators"
+            label={t(language, 'typingIndicators')}
           />
         </FormGroup>
         <Typography variant="subtitle2">
-          Disabling this will also hide your active typing status from others.
+          {t(language, 'typingIndicatorsHelp')}
         </Typography>
       </Paper>
       <Divider sx={{ my: 2 }} />
@@ -204,7 +237,7 @@ export const Settings = ({ userId }: SettingsProps) => {
               mb: 2,
             }}
           >
-            Networking
+            {t(language, 'networkingTitle')}
           </Typography>
           <EnhancedConnectivityControl
             isEnabled={isEnhancedConnectivityEnabled}
@@ -222,7 +255,7 @@ export const Settings = ({ userId }: SettingsProps) => {
           mb: 2,
         }}
       >
-        Data
+        {t(language, 'dataTitle')}
       </Typography>
       <Typography
         variant="h2"
@@ -232,27 +265,17 @@ export const Settings = ({ userId }: SettingsProps) => {
           mb: 1.5,
         }}
       >
-        Export profile data
+        {t(language, 'exportProfileTitle')}
       </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          mb: 2,
-        }}
-      >
-        Export your Chitchatter profile data so that it can be moved to another
-        browser or device.{' '}
-        <strong>Be careful not to share the exported data with anyone</strong>.
-        It contains your unique verification keys.
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        {t(language, 'exportProfileBody')}
       </Typography>
       <Button
         variant="outlined"
-        sx={{
-          mb: 2,
-        }}
+        sx={{ mb: 2 }}
         onClick={handleExportSettingsClick}
       >
-        Export profile data
+        {t(language, 'exportProfile')}
       </Button>
       <Typography
         variant="h2"
@@ -262,16 +285,10 @@ export const Settings = ({ userId }: SettingsProps) => {
           mb: 1.5,
         }}
       >
-        Import profile data
+        {t(language, 'importProfileTitle')}
       </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          mb: 2,
-        }}
-      >
-        Import your Chitchatter profile that was previously exported from
-        another browser or device.
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        {t(language, 'importProfileBody')}
       </Typography>
       <FileReaderInput
         {...{
@@ -281,14 +298,8 @@ export const Settings = ({ userId }: SettingsProps) => {
           },
         }}
       >
-        <Button
-          color="warning"
-          variant="outlined"
-          sx={{
-            mb: 2,
-          }}
-        >
-          Import profile data
+        <Button color="warning" variant="outlined" sx={{ mb: 2 }}>
+          {t(language, 'importProfile')}
         </Button>
       </FileReaderInput>
       <Typography
@@ -299,16 +310,13 @@ export const Settings = ({ userId }: SettingsProps) => {
           mb: 1.5,
         }}
       >
-        Delete all profile data
+        {t(language, 'deleteProfileTitle')}
       </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          mb: 2,
-        }}
-      >
-        <strong>Be careful with this</strong>. This will cause your user name to
-        change from{' '}
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        {t(language, 'deleteProfileBody')}
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        <strong>{t(language, 'deleteProfileWarningStart')}</strong>{' '}
         <strong>
           <PeerNameDisplay
             sx={{
@@ -318,33 +326,23 @@ export const Settings = ({ userId }: SettingsProps) => {
             {userId}
           </PeerNameDisplay>
         </strong>{' '}
-        to a new, randomly-assigned name. It will also reset all of your saved
-        Chitchatter application preferences.
+        {t(language, 'deleteProfileWarningEnd')}
       </Typography>
       <Button
         variant="outlined"
         color="error"
-        sx={{
-          mb: 2,
-        }}
+        sx={{ mb: 2 }}
         onClick={handleDeleteSettingsClick}
       >
-        Delete all data and restart
+        {t(language, 'deleteProfile')}
       </Button>
       <ConfirmDialog
         isOpen={isDeleteSettingsConfirmDiaglogOpen}
         onCancel={handleDeleteSettingsCancel}
         onConfirm={handleDeleteSettingsConfirm}
       />
-      <Typography
-        variant="subtitle2"
-        sx={{
-          mb: 2,
-        }}
-      >
-        Chitchatter only stores user preferences and never message content of
-        any kind. This preference data is only stored locally on your device and
-        not a server.
+      <Typography variant="subtitle2" sx={{ mb: 2 }}>
+        {t(language, 'localDataOnly')}
       </Typography>
       <Divider sx={{ my: 2 }} />
     </Box>
