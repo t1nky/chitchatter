@@ -33,3 +33,5 @@ Session.vim
 /playwright-report/
 /playwright/.cache/
 /e2e/screenshots/
+gh-pages-deploy
+gh-pages-deploy.pub

@@ -13,7 +13,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run check:types
-      - run: bun test
+      - run: bun run test
 
       - name: Install Playwright Browsers
         run: bunx playwright install --with-deps
