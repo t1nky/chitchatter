@@ -10,18 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run check:types
-      - run: npm test
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run check:types
+      - run: bun test
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: bunx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: bunx playwright test
         env:
           CI: true
 
@@ -36,7 +34,7 @@ jobs:
           retention-days: 30
 
       - name: 'Build web app artifacts'
-        run: npm run build
+        run: bun run build
 
       - uses: actions/upload-artifact@v4
         with:
