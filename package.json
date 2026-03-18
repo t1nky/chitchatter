@@ -36,6 +36,7 @@
     "remark-gfm": "^4.0.1",
     "sdp": "^3.2.1",
     "secure-file-transfer": "^0.0.8",
+    "shadcn": "^4.0.8",
     "stream-browserify": "^3.0.0",
     "streamsaver": "^2.0.6",
     "tailwind-merge": "^3.5.0",
