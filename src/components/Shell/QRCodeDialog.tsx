@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -31,6 +32,9 @@ export function QRCodeDialog({ isOpen, handleClose }: QRCodeDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('dialogs.qrCode.title')}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t('dialogs.qrCode.title')}
+          </DialogDescription>
         </DialogHeader>
         <QRCode
           value={url}

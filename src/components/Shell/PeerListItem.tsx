@@ -20,6 +20,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -197,6 +198,9 @@ export const PeerListItem = ({
                 <PeerNameDisplay>{peer.userId}</PeerNameDisplay>
               </span>
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {t('room.peerDetails')}
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-1 flex-col overflow-hidden">
             <Collapsible>
