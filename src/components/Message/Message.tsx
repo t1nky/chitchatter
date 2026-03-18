@@ -46,13 +46,15 @@ const componentMap = {
   p: (args: HTMLAttributes<HTMLElement>) => (
     <p {...args} className={cn('text-base', args.className)} />
   ),
-  a: (args: HTMLAttributes<HTMLElement>) => (
+  a: ({ children, ...args }: HTMLAttributes<HTMLElement>) => (
     <a
       {...args}
       className={cn('text-base underline text-inherit', args.className)}
       target="_blank"
       rel="noopener noreferrer"
-    />
+    >
+      {children}
+    </a>
   ),
   // https://github.com/remarkjs/react-markdown#use-custom-components-syntax-highlight
   code({
