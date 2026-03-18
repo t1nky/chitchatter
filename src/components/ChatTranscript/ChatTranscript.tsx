@@ -1,23 +1,23 @@
 import { useRef, useEffect, useState, useContext } from 'react'
-import Box, { BoxProps } from '@mui/material/Box'
-import useTheme from '@mui/material/styles/useTheme'
 
 import { Message as IMessage, InlineMedia } from 'models/chat'
 import { Message } from 'components/Message'
 import { ShellContext } from 'contexts/ShellContext'
 
-export interface ChatTranscriptProps extends BoxProps {
+import { cn } from '@/lib/utils'
+
+export interface ChatTranscriptProps {
   messageLog: Array<IMessage | InlineMedia>
   userId: string
+  className?: string
 }
 
 export const ChatTranscript = ({
   messageLog,
   userId,
-  sx,
+  className,
 }: ChatTranscriptProps) => {
   const { showRoomControls } = useContext(ShellContext)
-  const theme = useTheme()
   const boxRef = useRef<HTMLDivElement>(null)
   const [previousMessageLogLength, setPreviousMessageLogLength] = useState(0)
 
@@ -56,30 +56,14 @@ export const ChatTranscript = ({
     setPreviousMessageLogLength(messageLog.length)
   }, [messageLog.length])
 
-  const transcriptMaxWidth = theme.breakpoints.values.md
-  const transcriptPaddingX = `(50% - ${
-    transcriptMaxWidth / 2
-  }px) - ${theme.spacing(1)}`
-  const transcriptMinPadding = theme.spacing(1)
-
   return (
-    <Box
+    <div
       ref={boxRef}
-      className="ChatTranscript"
-      sx={[
-        {
-          display: 'flex',
-          flexDirection: 'column',
-          flexGrow: 1,
-          overflow: 'auto',
-          pb: transcriptMinPadding,
-          pt: showRoomControls ? theme.spacing(10) : theme.spacing(2),
-          px: `max(${transcriptPaddingX}, ${transcriptMinPadding})`,
-          transition: `padding-top ${theme.transitions.duration.short}ms ${theme.transitions.easing.easeInOut}`,
-          width: '100%',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+      className={cn(
+        'ChatTranscript flex flex-col grow overflow-auto pb-2 px-2 w-full transition-[padding-top] duration-200 ease-in-out max-w-screen-md mx-auto',
+        showRoomControls ? 'pt-20' : 'pt-4',
+        className
+      )}
     >
       {messageLog.map((message, idx) => {
         const previousMessage = messageLog[idx - 1]
@@ -98,6 +82,6 @@ export const ChatTranscript = ({
           </div>
         )
       })}
-    </Box>
+    </div>
   )
 }

@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react'
-import Slider from '@mui/material/Slider'
-import Box from '@mui/material/Box'
-import Paper from '@mui/material/Paper'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import VolumeUpIcon from '@mui/icons-material/VolumeUp'
-import VolumeDownIcon from '@mui/icons-material/VolumeDown'
-import VolumeMuteIcon from '@mui/icons-material/VolumeMute'
-import MicIcon from '@mui/icons-material/Mic'
-import LaptopWindowsIcon from '@mui/icons-material/LaptopWindows'
-import Tooltip from '@mui/material/Tooltip'
+import {
+  VolumeHighIcon,
+  VolumeLowIcon,
+  VolumeMute01Icon,
+  Mic01Icon,
+  ComputerPhoneSyncIcon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
+
 import { AudioChannelName } from 'models/chat'
+import { Slider } from 'components/ui/slider'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from 'components/ui/tooltip'
 
 interface AudioVolumeProps {
   audioEl: HTMLAudioElement
@@ -20,6 +27,7 @@ export const AudioVolume = ({
   audioEl,
   audioChannelName,
 }: AudioVolumeProps) => {
+  const { t } = useTranslation()
   const [audioVolume, setAudioVolume] = useState(audioEl.volume)
 
   useEffect(() => {
@@ -34,55 +42,73 @@ export const AudioVolume = ({
     }
   }
 
-  const handleSliderChange = (_event: Event, value: number | number[]) => {
-    value = Array.isArray(value) ? value[0] : value
-    setAudioVolume(value / 100)
+  const handleSliderChange = (value: number[]) => {
+    setAudioVolume(value[0] / 100)
   }
 
-  const formatLabelValue = () => `${Math.round(audioVolume * 100)}%`
-
-  let VolumeIcon = VolumeUpIcon
+  let VolumeIconData = VolumeHighIcon
 
   if (audioVolume === 0) {
-    VolumeIcon = VolumeMuteIcon
+    VolumeIconData = VolumeMute01Icon
   } else if (audioVolume < 0.5) {
-    VolumeIcon = VolumeDownIcon
+    VolumeIconData = VolumeLowIcon
   }
 
   return (
-    <Paper
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        mt: 1.5,
-        pl: 2,
-        pr: 3,
-        py: 1,
-      }}
-    >
-      <ListItemIcon sx={{ cursor: 'pointer' }} onClick={handleIconClick}>
-        <VolumeIcon fontSize="small" />
-        {audioChannelName === AudioChannelName.MICROPHONE && (
-          <Tooltip title="Their microphone volume">
-            <MicIcon fontSize="small" sx={{ ml: 1, mr: 2 }} />
-          </Tooltip>
-        )}
-        {audioChannelName === AudioChannelName.SCREEN_SHARE && (
-          <Tooltip title="Their screen's volume">
-            <LaptopWindowsIcon fontSize="small" sx={{ ml: 1, mr: 2 }} />
-          </Tooltip>
-        )}
-      </ListItemIcon>
-      <Box display="flex" width={1}>
+    <div className="flex items-center mt-3 pl-4 pr-6 py-2 rounded-xl border bg-card shadow-sm">
+      <span
+        className="cursor-pointer flex items-center"
+        onClick={handleIconClick}
+      >
+        <HugeiconsIcon
+          icon={VolumeIconData}
+          strokeWidth={1.8}
+          className="size-4"
+        />
+        <TooltipProvider>
+          {audioChannelName === AudioChannelName.MICROPHONE && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <HugeiconsIcon
+                    icon={Mic01Icon}
+                    strokeWidth={1.8}
+                    className="size-4"
+                  />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('room.audio.peerMicrophoneVolume')}
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {audioChannelName === AudioChannelName.SCREEN_SHARE && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <HugeiconsIcon
+                    icon={ComputerPhoneSyncIcon}
+                    strokeWidth={1.8}
+                    className="size-4"
+                  />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('room.audio.peerScreenVolume')}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </TooltipProvider>
+      </span>
+      <div className="flex w-full ml-3">
         <Slider
-          aria-label="Volume"
-          getAriaValueText={formatLabelValue}
-          valueLabelFormat={formatLabelValue}
-          valueLabelDisplay="auto"
-          onChange={handleSliderChange}
-          value={audioVolume * 100}
-        ></Slider>
-      </Box>
-    </Paper>
+          aria-label={t('room.audio.volume')}
+          onValueChange={handleSliderChange}
+          value={[audioVolume * 100]}
+          max={100}
+          step={1}
+        />
+      </div>
+    </div>
   )
 }

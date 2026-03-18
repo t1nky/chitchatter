@@ -1,9 +1,10 @@
-import Box from '@mui/material/Box'
-import ScreenShare from '@mui/icons-material/ScreenShare'
-import StopScreenShare from '@mui/icons-material/StopScreenShare'
-import Tooltip from '@mui/material/Tooltip'
+import { ComputerPhoneSyncIcon, Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { PeerRoom } from 'lib/PeerRoom'
+
+import { Tooltip, TooltipTrigger, TooltipContent } from 'components/ui/tooltip'
 
 import { useRoomScreenShare } from './useRoomScreenShare'
 import { MediaButton } from './MediaButton'
@@ -15,6 +16,7 @@ export interface RoomFileUploadControlsProps {
 export function RoomScreenShareControls({
   peerRoom,
 }: RoomFileUploadControlsProps) {
+  const { t } = useTranslation()
   const { isSharingScreen, handleScreenShareStart, handleScreenShareStop } =
     useRoomScreenShare({
       peerRoom,
@@ -33,28 +35,35 @@ export function RoomScreenShareControls({
   }
 
   return (
-    <Box
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        px: 1,
-      }}
-    >
-      <Tooltip
-        title={
-          isSharingScreen ? 'Stop sharing screen' : 'Share screen with room'
-        }
-      >
-        <MediaButton
-          isActive={isSharingScreen}
-          aria-label="share screen"
-          onClick={handleToggleScreenShareButtonClick}
-        >
-          {isSharingScreen ? <ScreenShare /> : <StopScreenShare />}
-        </MediaButton>
+    <div className="flex flex-col items-center justify-center px-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <MediaButton
+            isActive={isSharingScreen}
+            aria-label={t('room.controls.shareScreenAria')}
+            onClick={handleToggleScreenShareButtonClick}
+          >
+            {isSharingScreen ? (
+              <HugeiconsIcon
+                icon={ComputerPhoneSyncIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            )}
+          </MediaButton>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isSharingScreen
+            ? t('room.controls.stopSharingScreen')
+            : t('room.controls.shareScreen')}
+        </TooltipContent>
       </Tooltip>
-    </Box>
+    </div>
   )
 }

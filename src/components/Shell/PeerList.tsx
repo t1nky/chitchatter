@@ -1,12 +1,7 @@
 import { PropsWithChildren } from 'react'
-import List from '@mui/material/List'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Divider from '@mui/material/Divider'
-import VolumeUp from '@mui/icons-material/VolumeUp'
-import ListItem from '@mui/material/ListItem'
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
+import { VolumeHighIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { UserInfo } from 'components/UserInfo'
 import {
@@ -46,25 +41,30 @@ export const PeerList = ({
   peerAudioChannels,
   connectionTestResults,
 }: PeerListProps) => {
+  const { t } = useTranslation()
+
   return (
     <>
       <PeerListHeader
         onPeerListClose={onPeerListClose}
         connectionTestResults={connectionTestResults}
       />
-      <Divider />
-      <List>
-        <ListItem divider={true}>
+      <ul>
+        <li className="flex items-center border-b px-4 py-2">
           {peerAudioChannelState[AudioChannelName.MICROPHONE] ===
             AudioState.PLAYING && (
-            <ListItemIcon>
-              <VolumeUp />
-            </ListItemIcon>
+            <span className="mr-3 flex shrink-0 items-center">
+              <HugeiconsIcon
+                icon={VolumeHighIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            </span>
           )}
-          <ListItemText>
+          <span className="min-w-0 flex-1">
             <UserInfo userId={userId} />
-          </ListItemText>
-        </ListItem>
+          </span>
+        </li>
         {peerList.map((peer: Peer) => (
           <PeerListItem
             key={peer.peerId}
@@ -79,21 +79,12 @@ export const PeerList = ({
         connectionTestResults.trackerConnection ===
           TrackerConnection.CONNECTED &&
         connectionTestResults.hasHost ? (
-          <>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                m: 2,
-              }}
-            >
-              <CircularProgress size={16} sx={{ mr: 1.5 }} />
-              <span>Searching for peers...</span>
-            </Box>
-          </>
+          <div className="m-4 flex items-center">
+            <div className="mr-3 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span>{t('peerList.searching')}</span>
+          </div>
         ) : null}
-      </List>
+      </ul>
     </>
   )
 }

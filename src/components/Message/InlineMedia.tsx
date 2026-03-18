@@ -1,6 +1,3 @@
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { TorrentFile } from 'webtorrent'
 
@@ -64,18 +61,14 @@ export const InlineFile = ({ file }: InlineFileProps) => {
   }, [file, containerRef, shellContext.roomId])
 
   return (
-    <Box ref={containerRef} sx={{ '& img': { maxWidth: '100%' } }}>
+    <div ref={containerRef} className="[&_img]:max-w-full">
       {!isMediaSupported && (
-        <Typography sx={{ fontStyle: 'italic' }}>
-          Media preview not supported
-        </Typography>
+        <p className="italic">Media preview not supported</p>
       )}
       {didRenderingMediaFail && (
-        <Typography sx={{ fontStyle: 'italic' }}>
-          Media failed to render
-        </Typography>
+        <p className="italic">Media failed to render</p>
       )}
-    </Box>
+    </div>
   )
 }
 
@@ -103,7 +96,7 @@ export const InlineMedia = ({ magnetURI }: InlineMediaProps) => {
   return (
     <>
       {hasDownloadInitiated && downloadedFiles.length === 0 ? (
-        <CircularProgress variant="indeterminate" color="inherit" />
+        <div className="size-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
         downloadedFiles.map(file => <InlineFile file={file} key={file.name} />)
       )}

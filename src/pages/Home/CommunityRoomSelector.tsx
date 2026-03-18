@@ -1,67 +1,59 @@
-import { useState, SyntheticEvent } from 'react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import Button from '@mui/material/Button'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import Autocomplete from '@mui/material/Autocomplete'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
+import { Button } from 'components/ui/button'
+import { Label } from 'components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from 'components/ui/select'
 import { communityRoomNames } from 'config/communityRooms'
 
 export const CommunityRoomSelector = () => {
   const navigate = useNavigate()
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
-
-  const handleRoomNameChange = (
-    _event: SyntheticEvent<Element, Event>,
-    roomName: string | null
-  ) => {
-    setSelectedRoom(roomName)
-  }
+  const { t } = useTranslation()
+  const [selectedRoom, setSelectedRoom] = useState('')
 
   const handleJoinClick = () => {
     navigate(`/public/${selectedRoom}`)
   }
 
   return (
-    <Accordion>
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls="panel1-content"
-        id="panel1-header"
-        sx={{
-          fontWeight: 'bold',
-        }}
-      >
-        Community rooms
-      </AccordionSummary>
-      <AccordionDetails>
-        <Typography variant="body1">
-          You can also chat in a public community room. You'll be anonymous, but
-          be careful what information you choose to share.
-        </Typography>
-        <Box display="flex" mt={2} gap={1}>
-          <Autocomplete
-            disablePortal
-            options={communityRoomNames}
-            value={selectedRoom}
-            renderInput={params => <TextField {...params} label="Room" />}
-            onChange={handleRoomNameChange}
-            sx={{ flexGrow: 1 }}
-          />
+    <div className="space-y-3">
+      <p className="text-sm leading-6 text-muted-foreground">
+        {t('communityRooms.description')}
+      </p>
+      <div className="space-y-2">
+        <Label htmlFor="community-room-select">
+          {t('communityRooms.room')}
+        </Label>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+            <SelectTrigger id="community-room-select" className="w-full">
+              <SelectValue placeholder={t('communityRooms.room')} />
+            </SelectTrigger>
+            <SelectContent>
+              {communityRoomNames.map(roomName => (
+                <SelectItem key={roomName} value={roomName}>
+                  {roomName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
-            variant="contained"
-            disabled={selectedRoom === null}
+            type="button"
+            variant="secondary"
             onClick={handleJoinClick}
+            disabled={!selectedRoom}
           >
-            Join
+            {t('communityRooms.join')}
           </Button>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+        </div>
+      </div>
+    </div>
   )
 }

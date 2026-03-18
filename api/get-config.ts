@@ -208,6 +208,14 @@ const getTurnServer = (): RTCIceServer => {
   }
 }
 
+const configuredAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
+
+const primaryAppOrigin =
+  process.env.PRIMARY_APP_ORIGIN || configuredAllowedOrigins[0]
+
 const allowedOrigins = [
   'https://chitchatter.im',
   'https://chitchatter.vercel.app',
@@ -215,6 +223,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Development frontend
   'http://localhost:3001', // API development
   'http://localhost:3003', // Simple API server
+  ...configuredAllowedOrigins,
 ]
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -240,7 +249,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.setHeader('Access-Control-Allow-Origin', origin)
     } else {
       // For same-origin requests or allowed deployments, use the primary domain
-      res.setHeader('Access-Control-Allow-Origin', 'https://chitchatter.im')
+      res.setHeader(
+        'Access-Control-Allow-Origin',
+        primaryAppOrigin || 'https://chitchatter.im'
+      )
     }
   }
 

@@ -1,15 +1,18 @@
-import Typography, { TypographyProps } from '@mui/material/Typography'
-
 import { usePeerNameDisplay } from './usePeerNameDisplay'
 import { getPeerName } from './getPeerName'
 
-export interface PeerNameDisplayProps extends TypographyProps {
+export interface PeerNameDisplayProps {
   children: string
+  className?: string
+  /** @deprecated MUI prop kept for backward compatibility — use className instead */
+  sx?: object
+  /** @deprecated MUI prop kept for backward compatibility */
+  paragraph?: boolean
 }
 
 export const PeerNameDisplay = ({
   children: userId,
-  ...rest
+  className,
 }: PeerNameDisplayProps) => {
   const { getCustomUsername, getFriendlyName } = usePeerNameDisplay()
 
@@ -18,19 +21,12 @@ export const PeerNameDisplay = ({
 
   if (customUsername === friendlyName) {
     return (
-      <Typography component="span" {...rest}>
+      <span className={className}>
         {friendlyName}
-        <Typography variant="caption" {...rest}>
-          {' '}
-          ({getPeerName(userId)})
-        </Typography>
-      </Typography>
-    )
-  } else {
-    return (
-      <Typography component="span" {...rest}>
-        {getPeerName(userId)}
-      </Typography>
+        <span className="text-xs"> ({getPeerName(userId)})</span>
+      </span>
     )
   }
+
+  return <span className={className}>{getPeerName(userId)}</span>
 }

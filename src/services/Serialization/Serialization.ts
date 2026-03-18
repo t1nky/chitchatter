@@ -1,8 +1,10 @@
-import { ColorMode, UserSettings } from 'models/settings'
+import { ColorMode, isLanguage, UserSettings } from 'models/settings'
 import { AllowedKeyType, encryption } from 'services/Encryption'
 
-export interface SerializedUserSettings
-  extends Omit<UserSettings, 'publicKey' | 'privateKey'> {
+export interface SerializedUserSettings extends Omit<
+  UserSettings,
+  'publicKey' | 'privateKey'
+> {
   publicKey: string
   privateKey: string
 }
@@ -15,6 +17,9 @@ export const isSerializedUserSettings = (
     data !== null &&
     'colorMode' in data &&
     Object.values(ColorMode).includes(data.colorMode) &&
+    'language' in data &&
+    typeof data.language === 'string' &&
+    isLanguage(data.language) &&
     'userId' in data &&
     typeof data.userId === 'string' &&
     'customUsername' in data &&

@@ -6,15 +6,16 @@ import {
   useRef,
   useState,
 } from 'react'
-import FormControl from '@mui/material/FormControl'
-import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
-import Fab from '@mui/material/Fab'
-import ArrowUpward from '@mui/icons-material/ArrowUpward'
+import { ArrowUp01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { messageCharacterSizeLimit } from 'config/messaging'
 import { SettingsContext } from 'contexts/SettingsContext'
 import { Form } from 'components/Elements'
+import { Button } from 'components/ui/button'
+
+import { cn } from '@/lib/utils'
 
 interface MessageFormProps {
   onMessageSubmit: (message: string) => void
@@ -27,9 +28,10 @@ export const MessageForm = ({
   onMessageChange,
   isMessageSending,
 }: MessageFormProps) => {
+  const { t } = useTranslation()
   const settingsContext = useContext(SettingsContext)
   const { showActiveTypingStatus } = settingsContext.getUserSettings()
-  const textFieldRef = useRef<HTMLInputElement>(null)
+  const textFieldRef = useRef<HTMLTextAreaElement>(null)
   const [textMessage, setTextMessage] = useState('')
 
   useEffect(() => {
@@ -47,7 +49,9 @@ export const MessageForm = ({
     )
   }
 
-  const handleMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMessageChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const { value } = event.target
     setTextMessage(value)
     onMessageChange(value)
@@ -58,7 +62,7 @@ export const MessageForm = ({
     setTextMessage('')
   }
 
-  const handleMessageKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+  const handleMessageKeyPress = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const { key, shiftKey } = event
 
     if (key === 'Enter' && shiftKey === false) {
@@ -78,43 +82,32 @@ export const MessageForm = ({
   return (
     <Form
       onSubmit={handleMessageSubmit}
-      sx={{
-        ...(showActiveTypingStatus && {
-          pt: 2,
-          px: 2,
-        }),
-        ...(!showActiveTypingStatus && {
-          p: 2,
-        }),
-      }}
+      className={cn(showActiveTypingStatus ? 'pt-4 px-4' : 'p-4')}
     >
-      <Stack direction="row" spacing={2}>
-        <FormControl fullWidth>
-          <TextField
-            variant="outlined"
-            value={textMessage}
-            onChange={handleMessageChange}
-            onKeyPress={handleMessageKeyPress}
-            size="medium"
-            placeholder="Your message"
-            inputRef={textFieldRef}
-            multiline
-          />
-        </FormControl>
-        <Fab
-          sx={{
-            flexShrink: 0,
-            // The !important is needed to override a Stack style
-            marginTop: 'auto!important',
-          }}
-          aria-label="Send"
+      <div className="flex items-center gap-2">
+        <textarea
+          className="flex-1 min-h-10 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+          value={textMessage}
+          onChange={handleMessageChange}
+          onKeyPress={handleMessageKeyPress}
+          placeholder={t('messageForm.placeholder')}
+          ref={textFieldRef}
+          rows={1}
+        />
+        <Button
+          size="icon"
+          className="rounded-full shrink-0 size-10"
+          aria-label={t('messageForm.send')}
           type="submit"
           disabled={!canMessageBeSent()}
-          color="primary"
         >
-          <ArrowUpward />
-        </Fab>
-      </Stack>
+          <HugeiconsIcon
+            icon={ArrowUp01Icon}
+            strokeWidth={1.8}
+            className="size-4"
+          />
+        </Button>
+      </div>
     </Form>
   )
 }

@@ -1,42 +1,50 @@
 import { ChangeEvent } from 'react'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import FormGroup from '@mui/material/FormGroup'
-import Paper from '@mui/material/Paper'
-import Switch from '@mui/material/Switch'
-import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
+
+import { Switch } from 'components/ui/switch'
+
+import { cn } from '@/lib/utils'
 
 interface EnhancedConnectivityControlProps {
   isEnabled: boolean
   onChange: (event: ChangeEvent, newValue: boolean) => void
   variant?: 'body2' | 'subtitle2'
-  showSecondaryColor?: boolean
-  elevation?: number
-  sx?: object
+  className?: string
 }
 
 export const EnhancedConnectivityControl = ({
   isEnabled,
   onChange,
   variant = 'body2',
-  showSecondaryColor = false,
-  elevation = 3,
-  sx = { p: 2, mb: 2 },
+  className,
 }: EnhancedConnectivityControlProps) => {
+  const { t } = useTranslation()
+
   return (
-    <Paper elevation={elevation} sx={sx}>
-      <FormGroup>
-        <FormControlLabel
-          control={<Switch checked={isEnabled} onChange={onChange} />}
-          label="Enhanced connectivity"
-        />
-      </FormGroup>
-      <Typography
-        variant={variant}
-        color={showSecondaryColor ? 'text.secondary' : undefined}
+    <div
+      className={cn('rounded-xl border bg-card p-4 mb-4 shadow-sm', className)}
+    >
+      <div className="space-y-3">
+        <label className="flex items-center gap-2">
+          <Switch
+            checked={isEnabled}
+            onCheckedChange={(checked: boolean) =>
+              onChange({} as ChangeEvent, checked)
+            }
+          />
+          <span>{t('enhancedConnectivity.label')}</span>
+        </label>
+      </div>
+      <p
+        className={cn(
+          'mt-2',
+          variant === 'subtitle2'
+            ? 'text-sm font-medium text-muted-foreground'
+            : 'text-sm text-muted-foreground'
+        )}
       >
-        Use external TURN servers to improve connection reliability. Disable
-        this if you prefer not to connect to third-party servers.
-      </Typography>
-    </Paper>
+        {t('enhancedConnectivity.help')}
+      </p>
+    </div>
   )
 }

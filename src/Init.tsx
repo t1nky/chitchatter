@@ -1,6 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import { v4 as uuid } from 'uuid'
 
 import { encryption } from 'services/Encryption'
@@ -9,9 +7,12 @@ import {
   isEnvironmentSupported,
 } from 'components/Shell/EnvironmentUnsupportedDialog'
 import { WholePageLoading } from 'components/Loading/Loading'
+import { TooltipProvider } from 'components/ui/tooltip'
 import { ColorMode, UserSettings } from 'models/settings'
 
 import { DEFAULT_SOUND } from 'config/soundNames'
+import { getPreferredLanguage } from 'i18n'
+import i18n from 'i18n'
 
 import type { BootstrapProps } from './Bootstrap'
 
@@ -39,6 +40,7 @@ const Init = ({ getUuid = uuid, ...props }: InitProps) => {
           userId: getUuid(),
           customUsername: '',
           colorMode: ColorMode.DARK,
+          language: getPreferredLanguage(window.navigator.language),
           playSoundOnNewMessage: true,
           showNotificationOnNewMessage: true,
           showActiveTypingStatus: true,
@@ -49,9 +51,7 @@ const Init = ({ getUuid = uuid, ...props }: InitProps) => {
         })
       } catch (e) {
         console.error(e)
-        setErrorMessage(
-          'Chitchatter was unable to boot up. Please check the browser console.'
-        )
+        setErrorMessage(i18n.t('init.bootError'))
       }
     })()
   }, [getUuid, userSettings])
@@ -62,16 +62,9 @@ const Init = ({ getUuid = uuid, ...props }: InitProps) => {
 
   if (errorMessage) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          height: '100vh',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Typography>{errorMessage}</Typography>
-      </Box>
+      <div className="flex h-screen items-center justify-center">
+        <p>{errorMessage}</p>
+      </div>
     )
   }
 
@@ -81,7 +74,9 @@ const Init = ({ getUuid = uuid, ...props }: InitProps) => {
 
   return (
     <Suspense fallback={<WholePageLoading />}>
-      <Bootstrap {...props} initialUserSettings={userSettings} />
+      <TooltipProvider>
+        <Bootstrap {...props} initialUserSettings={userSettings} />
+      </TooltipProvider>
     </Suspense>
   )
 }

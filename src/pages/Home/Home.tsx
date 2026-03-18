@@ -1,267 +1,287 @@
-import { useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import {
+  ChatLockIcon,
+  CopyLinkIcon,
+  GithubIcon,
+  GlobeIcon,
+  ArrowReloadHorizontalIcon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import FormControl from '@mui/material/FormControl'
-import IconButton from '@mui/material/IconButton'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import useTheme from '@mui/material/styles/useTheme'
-import { Cached } from '@mui/icons-material'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import styled from '@mui/material/styles/styled'
-import GitHubIcon from '@mui/icons-material/GitHub'
-import MuiLink from '@mui/material/Link'
-import Divider from '@mui/material/Divider'
-
-import Logo from 'img/logo.svg?react'
-
-import { Form, Main } from 'components/Elements'
-import { PeerNameDisplay } from 'components/PeerNameDisplay'
-import { EnhancedConnectivityControl } from 'components/EnhancedConnectivityControl'
-import { SettingsContext } from 'contexts/SettingsContext'
+import { UserInfo } from 'components/UserInfo'
+import { Button } from 'components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from 'components/ui/card'
+import { Input } from 'components/ui/input'
+import { Label } from 'components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from 'components/ui/select'
+import { Separator } from 'components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'components/ui/tooltip'
 import { routes } from 'config/routes'
+import Logo from 'img/logo.svg?react'
 import { RoomNameType } from 'lib/RoomNameGenerator'
 
-import { isEnhancedConnectivityAvailable } from '../../config/enhancedConnectivity'
-
-import { useHome } from './useHome'
-import { EmbedCodeDialog } from './EmbedCodeDialog'
 import { CommunityRoomSelector } from './CommunityRoomSelector'
-
-const StyledLogo = styled(Logo)({})
+import { EmbedCodeDialog } from './EmbedCodeDialog'
+import { useHome } from './useHome'
 
 export interface HomeProps {
   userId: string
 }
 
-export function Home({ userId }: HomeProps) {
-  const theme = useTheme()
-  const { updateUserSettings, getUserSettings } = useContext(SettingsContext)
-  const { isEnhancedConnectivityEnabled } = getUserSettings()
+const iconClass = 'size-4 shrink-0'
+const githubRepoUrl =
+  import.meta.env.VITE_GITHUB_REPO ??
+  'https://github.com/jeremyckahn/chitchatter'
+
+export const Home = ({ userId }: HomeProps) => {
+  const { t } = useTranslation()
   const {
     roomName,
     roomNameType,
     showEmbedCode,
     handleRoomNameChange,
     handleRoomNameTypeChange,
-    regenerateRoomName,
     handleFormSubmit,
     handleJoinPublicRoomClick,
     handleJoinPrivateRoomClick,
     handleGetEmbedCodeClick,
     handleEmbedCodeWindowClose,
     isRoomNameValid,
+    regenerateRoomName,
   } = useHome()
 
-  const handleIsEnhancedConnectivityEnabledChange = (
-    _event: React.ChangeEvent<{}>,
-    newIsEnhancedConnectivityEnabled: boolean
-  ) => {
-    updateUserSettings({
-      isEnhancedConnectivityEnabled: newIsEnhancedConnectivityEnabled,
-    })
+  const handleRoomNameTypeSelect = (newType: string) => {
+    handleRoomNameTypeChange(
+      {} as React.MouseEvent<HTMLElement>,
+      newType as RoomNameType
+    )
   }
 
   return (
-    <Box className="Home">
+    <>
       <EmbedCodeDialog
         showEmbedCode={showEmbedCode}
         handleEmbedCodeWindowClose={handleEmbedCodeWindowClose}
         roomName={roomName}
       />
-      <Main
-        sx={{
-          maxWidth: theme.breakpoints.values.md,
-          mt: 3,
-          mx: 'auto',
-          px: 2,
-          textAlign: 'center',
-        }}
-      >
-        <Link to={routes.ABOUT} aria-label="Go to About page">
-          <StyledLogo
-            sx={{
-              px: 0.5,
-              pb: 2,
-              mx: 'auto',
-              maxWidth: theme.breakpoints.values.sm,
-            }}
-          />
-        </Link>
-        <Form
-          onSubmit={handleFormSubmit}
-          sx={{ maxWidth: theme.breakpoints.values.sm, mx: 'auto' }}
-        >
-          <Typography sx={{ mb: 2 }}>
-            Your username:{' '}
-            <PeerNameDisplay paragraph={false} sx={{ fontWeight: 'bold' }}>
-              {userId}
-            </PeerNameDisplay>
-          </Typography>
-          <FormControl fullWidth>
-            <TextField
-              label="Room name (generated on your device)"
-              variant="outlined"
-              value={roomName}
-              onChange={handleRoomNameChange}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    aria-label="Regenerate room id"
-                    onClick={regenerateRoomName}
-                    size="small"
+
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 md:px-6 lg:max-w-3xl">
+        {/* Hero */}
+        <header className="flex flex-col items-center gap-2 text-center">
+          <Link
+            to={routes.ABOUT}
+            aria-label={t('home.aboutPageAriaLabel')}
+            className="mb-1 inline-flex"
+          >
+            <Logo className="h-10 w-auto" aria-label={t('appName')} />
+          </Link>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {t('home.title')}
+          </h1>
+          <div className="p-2 border-1 rounded-lg w-full bg-accent flex flex-col gap-1 font-mono text-accent-foreground">
+            <p className="whitespace-pre-line text-left text-sm">
+              {t('home.subtitle')}
+            </p>
+            <p className="whitespace-pre-line text-left text-sm">
+              {t('home.subTitleSecond')}
+            </p>
+          </div>
+        </header>
+
+        {/* Username */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('userInfo.yourUsername')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UserInfo userId={userId} showLabel={false} />
+          </CardContent>
+        </Card>
+
+        {/* Room Creation */}
+        <Card>
+          <CardHeader>
+            <div className="min-w-0 space-y-0.5">
+              <CardTitle>{t('home.roomNameLabel')}</CardTitle>
+              <CardDescription>{t('home.roomNameHelp')}</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleFormSubmit}>
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <div className="flex items-center gap-1">
+                    <Label
+                      htmlFor="room-name-input"
+                      className="whitespace-nowrap"
+                    >
+                      {t('home.roomNameLabel')}
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={regenerateRoomName}
+                          aria-label={t('home.regenerateRoomId')}
+                        >
+                          <HugeiconsIcon
+                            icon={ArrowReloadHorizontalIcon}
+                            strokeWidth={2}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {t('home.regenerateRoomId')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input
+                    id="room-name-input"
+                    value={roomName}
+                    onChange={handleRoomNameChange}
+                    aria-label={t('home.roomNameLabel')}
+                    className="mt-auto"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <Label
+                    htmlFor="home-room-type-select"
+                    className="whitespace-nowrap"
                   >
-                    <Cached />
-                  </IconButton>
-                ),
-                sx: { fontSize: { xs: '0.9rem', sm: '1rem' } },
-              }}
-              size="medium"
-            />
-          </FormControl>
-          <Box sx={{ mt: 2, mb: 2 }}>
-            <ToggleButtonGroup
-              value={roomNameType}
-              exclusive
-              onChange={handleRoomNameTypeChange}
-              aria-label="room name type"
-              size="small"
-            >
-              <ToggleButton value={RoomNameType.UUID} aria-label="UUID">
-                UUID
-              </ToggleButton>
-              <ToggleButton
-                value={RoomNameType.PASSPHRASE}
-                aria-label="Passphrase"
+                    {t('home.roomNameType')}
+                  </Label>
+                  <div className="mt-auto">
+                    <Select
+                      value={roomNameType}
+                      onValueChange={handleRoomNameTypeSelect}
+                    >
+                      <SelectTrigger
+                        id="home-room-type-select"
+                        className="w-full"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={RoomNameType.PASSPHRASE}>
+                          {t('home.readableWords')}
+                        </SelectItem>
+                        <SelectItem value={RoomNameType.UUID}>
+                          {t('home.technicalId')}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  onClick={handleJoinPrivateRoomClick}
+                  disabled={!isRoomNameValid}
+                >
+                  <HugeiconsIcon
+                    icon={ChatLockIcon}
+                    strokeWidth={1.8}
+                    className={iconClass}
+                  />
+                  {t('home.startPrivateRoom')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleJoinPublicRoomClick}
+                  disabled={!isRoomNameValid}
+                >
+                  <HugeiconsIcon
+                    icon={GlobeIcon}
+                    strokeWidth={1.8}
+                    className={iconClass}
+                  />
+                  {t('home.openPublicRoom')}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Secondary actions */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>{t('home.communityRooms')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CommunityRoomSelector />
+            </CardContent>
+          </Card>
+
+          <Card size="sm" className="justify-between">
+            <CardHeader>
+              <CardTitle>{t('home.embedCode')}</CardTitle>
+              <CardDescription>
+                {t('dialogs.embedCode.advancedIntroSuffix')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={handleGetEmbedCodeClick}
+                disabled={!isRoomNameValid}
               >
-                Passphrase
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 1,
-              mt: 2,
-            }}
-          >
-            <Button
-              variant="contained"
-              onClick={handleJoinPublicRoomClick}
-              sx={{
-                marginTop: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Join public room
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleJoinPrivateRoomClick}
-              sx={{
-                marginTop: 2,
-                marginLeft: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Join private room
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleGetEmbedCodeClick}
-              sx={{
-                marginTop: 2,
-                marginLeft: 2,
-              }}
-              disabled={!isRoomNameValid}
-            >
-              Get embed code
-            </Button>
-          </Box>
-        </Form>
-      </Main>
-      <Box component="section" aria-label="Additional options and information">
-        <Divider sx={{ my: 2 }} />
-        <Box maxWidth={theme.breakpoints.values.sm} mx="auto" px={2}>
-          <CommunityRoomSelector />
-        </Box>
-        {isEnhancedConnectivityAvailable && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Box maxWidth={theme.breakpoints.values.sm} mx="auto" px={2}>
-              <EnhancedConnectivityControl
-                isEnabled={isEnhancedConnectivityEnabled}
-                onChange={handleIsEnhancedConnectivityEnabledChange}
-                showSecondaryColor={true}
-              />
-            </Box>
-          </>
-        )}
-        <Divider sx={{ my: 2 }} />
-        <Box
-          sx={{
-            maxWidth: theme.breakpoints.values.sm,
-            mx: 'auto',
-            textAlign: 'center',
-            px: 2,
-          }}
-        >
-          <Typography variant="body1">
-            This is a free communication tool that is designed for simplicity,
-            privacy, and security. All interaction between you and your online
-            peers is encrypted. There is no record of your conversation once you
-            all leave.
-          </Typography>
-        </Box>
-        <Box
-          component="footer"
-          sx={{
-            mx: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <MuiLink
-            href="https://github.com/jeremyckahn/chitchatter"
-            target="_blank"
-            sx={() => ({
-              color: theme.palette.text.primary,
-            })}
-          >
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="View source code on GitHub"
-            >
-              <GitHubIcon sx={{ fontSize: '2em' }} />
-            </IconButton>
-          </MuiLink>
-          <Typography variant="body1" sx={{ textAlign: 'center', mb: 1 }}>
-            Licensed under{' '}
-            <MuiLink
-              href="https://github.com/jeremyckahn/chitchatter/blob/develop/LICENSE"
-              target="_blank"
-            >
-              GPL v2
-            </MuiLink>
-            . Please{' '}
-            <MuiLink
-              href="https://github.com/jeremyckahn/chitchatter/blob/develop/README.md"
-              target="_blank"
-            >
-              read the docs
-            </MuiLink>
-            .
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
+                <HugeiconsIcon
+                  icon={CopyLinkIcon}
+                  strokeWidth={1.8}
+                  className={iconClass}
+                />
+                {t('home.embedCode')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                asChild
+              >
+                <a href={githubRepoUrl} target="_blank" rel="noreferrer">
+                  <HugeiconsIcon
+                    icon={GithubIcon}
+                    strokeWidth={1.8}
+                    className={iconClass}
+                  />
+                  {t('home.sourceCode')}
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Privacy footer */}
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          <span className="whitespace-pre-line">
+            {t('home.privacySummary')}
+          </span>
+        </p>
+      </div>
+    </>
   )
 }

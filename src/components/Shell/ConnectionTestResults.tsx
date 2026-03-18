@@ -1,14 +1,17 @@
-import Circle from '@mui/icons-material/FiberManualRecord'
-import ReportIcon from '@mui/icons-material/Report'
-import CircularProgress from '@mui/material/CircularProgress'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
-import { Box } from '@mui/system'
+import { CheckmarkCircle02Icon, Alert02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { SettingsContext } from 'contexts/SettingsContext'
 import { ShellContext } from 'contexts/ShellContext'
 import { TrackerConnection } from 'lib/ConnectionTest'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from 'components/ui/tooltip'
 
 import { ConnectionTestResults as IConnectionTestResults } from './useConnectionTest'
 
@@ -18,6 +21,7 @@ interface ConnectionTestResultsProps {
 export const ConnectionTestResults = ({
   connectionTestResults: { hasHost, hasTURNServer, trackerConnection },
 }: ConnectionTestResultsProps) => {
+  const { t } = useTranslation()
   const { setIsServerConnectionFailureDialogOpen } = useContext(ShellContext)
   const { getUserSettings } = useContext(SettingsContext)
   const { isEnhancedConnectivityEnabled } = getUserSettings()
@@ -28,31 +32,30 @@ export const ConnectionTestResults = ({
 
   if (trackerConnection === TrackerConnection.FAILED) {
     return (
-      <Typography
-        variant="subtitle2"
-        sx={{ cursor: 'pointer' }}
+      <p
+        className="cursor-pointer text-sm font-medium"
         onClick={handleServerConnectionFailedMessageClick}
       >
-        <Box
-          sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
-        >
-          <ReportIcon color="error" sx={{ mr: 1 }} />
-          <span>Server connection failed</span>
-        </Box>
-      </Typography>
+        <span className="flex items-center">
+          <HugeiconsIcon
+            icon={Alert02Icon}
+            strokeWidth={1.8}
+            className="size-4"
+          />
+          <span>{t('connectionStatus.serverConnectionFailed')}</span>
+        </span>
+      </p>
     )
   }
 
   if (trackerConnection !== TrackerConnection.CONNECTED) {
     return (
-      <Typography variant="subtitle2">
-        <Box
-          sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
-        >
-          <CircularProgress size={16} sx={{ mr: 1.5 }} />
-          <span>Searching for servers...</span>
-        </Box>
-      </Typography>
+      <p className="text-sm font-medium">
+        <span className="flex items-center">
+          <div className="mr-3 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span>{t('connectionStatus.searching')}</span>
+        </span>
+      </p>
     )
   }
 
@@ -65,45 +68,65 @@ export const ConnectionTestResults = ({
 
   if (hasFullConnectivity) {
     return (
-      <Tooltip title="Connections can be established with all peers that also have a full network connection.">
-        <Typography variant="subtitle2">
-          <Typography
-            component="span"
-            sx={theme => ({ color: theme.palette.success.main })}
-          >
-            <Circle sx={{ fontSize: 'small' }} />
-          </Typography>{' '}
-          Full network connection
-        </Typography>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="flex items-center gap-1 text-sm font-medium">
+              <span className="text-green-500">
+                <HugeiconsIcon
+                  icon={CheckmarkCircle02Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              </span>
+              {t('connectionStatus.full')}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>{t('connectionStatus.fullTooltip')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   } else if (hasHost) {
     return (
-      <Tooltip title="Relay server is unavailable. Connections can only be established when a relay server is not needed for either peer.">
-        <Typography variant="subtitle2">
-          <Typography
-            component="span"
-            sx={theme => ({ color: theme.palette.warning.main })}
-          >
-            <Circle sx={{ fontSize: 'small' }} />
-          </Typography>{' '}
-          Partial network connection
-        </Typography>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="flex items-center gap-1 text-sm font-medium">
+              <span className="text-yellow-500">
+                <HugeiconsIcon
+                  icon={CheckmarkCircle02Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              </span>
+              {t('connectionStatus.partial')}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>
+            {t('connectionStatus.partialTooltip')}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   } else {
     return (
-      <Tooltip title="Pairing server is unavailable. Peer connections cannot be established.">
-        <Typography variant="subtitle2">
-          <Typography
-            component="span"
-            sx={theme => ({ color: theme.palette.error.main })}
-          >
-            <Circle sx={{ fontSize: 'small' }} />
-          </Typography>{' '}
-          No network connection
-        </Typography>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="flex items-center gap-1 text-sm font-medium">
+              <span className="text-red-500">
+                <HugeiconsIcon
+                  icon={CheckmarkCircle02Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              </span>
+              {t('connectionStatus.none')}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>{t('connectionStatus.noneTooltip')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   }
 }

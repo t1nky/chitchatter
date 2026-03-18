@@ -1,34 +1,38 @@
 import { useContext } from 'react'
 
-import Box from '@mui/material/Box'
-import Fab from '@mui/material/Fab'
-import Tooltip from '@mui/material/Tooltip'
-import { ExpandLess } from '@mui/icons-material'
+import { ArrowUp01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { ShellContext } from 'contexts/ShellContext'
 
+import { Button } from 'components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from 'components/ui/tooltip'
+
 export function RoomHideRoomControls() {
+  const { t } = useTranslation()
   const { setShowRoomControls } = useContext(ShellContext)
 
   return (
-    <Box
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        px: 1,
-      }}
-    >
-      <Tooltip title="Hide controls">
-        <Fab
-          color="primary"
-          aria-label="hide controls"
-          onClick={() => setShowRoomControls(false)}
-        >
-          <ExpandLess />
-        </Fab>
+    <div className="flex flex-col items-center justify-center px-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="default"
+            size="icon"
+            className="rounded-full"
+            aria-label={t('room.controls.hideControlsAria')}
+            onClick={() => setShowRoomControls(false)}
+          >
+            <HugeiconsIcon
+              icon={ArrowUp01Icon}
+              strokeWidth={1.8}
+              className="size-4"
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t('room.controls.hideControls')}</TooltipContent>
       </Tooltip>
-    </Box>
+    </div>
   )
 }

@@ -1,29 +1,35 @@
-import EnhancedEncryptionIcon from '@mui/icons-material/EnhancedEncryption'
-import NetworkPingIcon from '@mui/icons-material/NetworkPing'
-import NoEncryptionIcon from '@mui/icons-material/NoEncryption'
-import SyncAltIcon from '@mui/icons-material/SyncAlt'
-import Accordion from '@mui/material/Accordion'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
-import useTheme from '@mui/material/styles/useTheme'
-import { useMediaQuery } from '@mui/material'
+import {
+  ShieldKeyIcon,
+  ComputerPhoneSyncIcon,
+  SecurityLockIcon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useContext, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { AudioVolume } from 'components/AudioVolume'
 import { PeerNameDisplay } from 'components/PeerNameDisplay'
 import { PublicKey } from 'components/PublicKey'
 import { Room } from 'components/Room'
+import { Button } from 'components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from 'components/ui/collapsible'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from 'components/ui/tooltip'
 import { PeerConnectionType } from 'lib/PeerRoom'
 import {
   AudioChannel,
@@ -42,37 +48,16 @@ interface PeerListItemProps {
   roomId: string
 }
 
-const verificationStateDisplayMap = {
-  [PeerVerificationState.UNVERIFIED]: (
-    <Tooltip title="This person could not be verified with public-key cryptography. They may be misrepresenting themself. Be careful with what you share with them.">
-      <NoEncryptionIcon color="error" />
-    </Tooltip>
-  ),
-  [PeerVerificationState.VERIFIED]: (
-    <Tooltip title="This person has been verified with public-key cryptography">
-      <EnhancedEncryptionIcon color="success" />
-    </Tooltip>
-  ),
-  [PeerVerificationState.VERIFYING]: (
-    <Tooltip title="Attempting to verify this person...">
-      <CircularProgress size={16} sx={{ position: 'relative', top: 3 }} />
-    </Tooltip>
-  ),
-}
-
-const iconRightPadding = 1
-
 export const PeerListItem = ({
   peer,
   peerConnectionTypes,
   peerAudioChannels,
   roomId,
 }: PeerListItemProps) => {
-  const theme = useTheme()
+  const { t } = useTranslation()
   const { getUserSettings } = useContext(SettingsContext)
   const { userId } = getUserSettings()
   const [showPeerDialog, setShowPeerDialog] = useState(false)
-  const isSmallViewport = useMediaQuery(theme.breakpoints.down('sm'))
 
   const hasPeerConnection = peer.peerId in peerConnectionTypes
 
@@ -92,61 +77,103 @@ export const PeerListItem = ({
   const screenShareAudio =
     peerAudioChannels[peer.peerId]?.[AudioChannelName.SCREEN_SHARE]
 
+  const verificationStateDisplayMap = {
+    [PeerVerificationState.UNVERIFIED]: (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <HugeiconsIcon
+                icon={SecurityLockIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {t('room.verification.unverifiedTooltip')}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
+    [PeerVerificationState.VERIFIED]: (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <HugeiconsIcon
+                icon={ShieldKeyIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {t('room.verification.verifiedTooltip')}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
+    [PeerVerificationState.VERIFYING]: (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <div className="relative top-[3px] size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {t('room.verification.verifyingTooltip')}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
+  }
+
   return (
     <>
-      <ListItem key={peer.peerId} divider={true}>
+      <li key={peer.peerId} className="flex items-center border-b px-4 py-2">
         <PeerDownloadFileButton peer={peer} />
-        <ListItemText>
-          <Box
-            sx={{ display: 'flex', alignContent: 'center', cursor: 'pointer' }}
+        <div className="min-w-0 flex-1">
+          <div
+            className="flex cursor-pointer items-center"
             onClick={handleListItemTextClick}
           >
             {hasPeerConnection ? (
-              <Tooltip
-                title={
-                  isPeerConnectionDirect ? (
-                    <>
-                      You are connected directly to{' '}
-                      <PeerNameDisplay
-                        sx={{ fontSize: 'inherit', fontWeight: 'inherit' }}
-                      >
-                        {peer.userId}
-                      </PeerNameDisplay>
-                    </>
-                  ) : (
-                    <>
-                      You are connected to{' '}
-                      <PeerNameDisplay
-                        sx={{ fontSize: 'inherit', fontWeight: 'inherit' }}
-                      >
-                        {peer.userId}
-                      </PeerNameDisplay>{' '}
-                      via a relay server. Your connection is still private and
-                      encrypted, but performance may be degraded.
-                    </>
-                  )
-                }
-              >
-                <Box
-                  component="span"
-                  sx={{ pr: iconRightPadding, cursor: 'pointer' }}
-                >
-                  {isPeerConnectionDirect ? (
-                    <SyncAltIcon color="success" />
-                  ) : (
-                    <NetworkPingIcon color="warning" />
-                  )}
-                </Box>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer pr-2">
+                      {isPeerConnectionDirect ? (
+                        <HugeiconsIcon
+                          icon={ComputerPhoneSyncIcon}
+                          strokeWidth={1.8}
+                          className="size-4"
+                        />
+                      ) : (
+                        <HugeiconsIcon
+                          icon={ComputerPhoneSyncIcon}
+                          strokeWidth={1.8}
+                          className="size-4"
+                        />
+                      )}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isPeerConnectionDirect
+                      ? t('room.connection.directTo', { name: peer.userId })
+                      : t('room.connection.relayedTo', {
+                          name: peer.userId,
+                        })}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
-            <Box
-              component="span"
-              sx={{ pr: iconRightPadding, cursor: 'pointer' }}
-            >
+            <span className="cursor-pointer pr-2">
               {verificationStateDisplayMap[peer.verificationState]}
-            </Box>
+            </span>
             <PeerNameDisplay>{peer.userId}</PeerNameDisplay>
-          </Box>
+          </div>
           {microphoneAudio && (
             <AudioVolume
               audioEl={microphoneAudio}
@@ -159,49 +186,41 @@ export const PeerListItem = ({
               audioChannelName={AudioChannelName.SCREEN_SHARE}
             />
           )}
-        </ListItemText>
-      </ListItem>
-      <Dialog
-        open={showPeerDialog}
-        onClose={handleDialogClose}
-        fullScreen={isSmallViewport}
-        maxWidth="md"
-        keepMounted
-        PaperProps={{
-          sx: { minHeight: `calc(100% - ${theme.spacing(8)})` },
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}>
-          {verificationStateDisplayMap[peer.verificationState]}
-          <Box component="span" sx={{ ml: 1 }}>
-            <PeerNameDisplay sx={{ fontSize: 'inherit' }}>
-              {peer.userId}
-            </PeerNameDisplay>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Accordion>
-            <AccordionSummary>
-              <Typography>Their public key</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <PublicKey publicKey={peer.publicKey} />
-            </AccordionDetails>
-          </Accordion>
-          <Box
-            bgcolor={theme.palette.background.paper}
-            display="flex"
-            flexDirection="column"
-            flexGrow={1}
-            mt={1}
-            overflow="auto"
-          >
-            <Room roomId={roomId} userId={userId} targetPeerId={peer.peerId} />
-          </Box>
+        </div>
+      </li>
+      <Dialog open={showPeerDialog} onOpenChange={setShowPeerDialog}>
+        <DialogContent className="h-[calc(100vh-4rem)] max-w-md sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              {verificationStateDisplayMap[peer.verificationState]}
+              <span className="ml-2">
+                <PeerNameDisplay>{peer.userId}</PeerNameDisplay>
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+                {t('room.verification.publicKey')}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 py-2">
+                <PublicKey publicKey={peer.publicKey} />
+              </CollapsibleContent>
+            </Collapsible>
+            <div className="mt-2 flex flex-1 flex-col overflow-auto rounded-md bg-background">
+              <Room
+                roomId={roomId}
+                userId={userId}
+                targetPeerId={peer.peerId}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDialogClose}>
+              {t('userInfo.close')}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Close</Button>
-        </DialogActions>
       </Dialog>
     </>
   )

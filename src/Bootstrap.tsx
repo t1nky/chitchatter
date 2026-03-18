@@ -33,6 +33,7 @@ import { PublicRoom } from 'pages/PublicRoom'
 import { Settings } from 'pages/Settings'
 import { serialization, SerializedUserSettings } from 'services/Serialization'
 import { routerType } from 'config/router'
+import i18n from 'i18n'
 
 export interface BootstrapProps {
   persistedStorage?: typeof localforage
@@ -212,6 +213,10 @@ const Bootstrap = ({
       window.removeEventListener('message', handleConfigMessage)
     }
   }, [hasLoadedSettings, userSettings])
+
+  useEffect(() => {
+    void i18n.changeLanguage(userSettings.language)
+  }, [userSettings.language])
 
   const settingsContextValue = {
     updateUserSettings: async (changedSettings: Partial<UserSettings>) => {

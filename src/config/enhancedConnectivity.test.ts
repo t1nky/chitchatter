@@ -158,45 +158,40 @@ describe('enhancedConnectivity', () => {
     test('isEnhancedConnectivityAvailable is true when valid endpoint is set', async () => {
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = '/api/get-config'
       vi.resetModules()
-      const { isEnhancedConnectivityAvailable } = await import(
-        './enhancedConnectivity'
-      )
+      const { isEnhancedConnectivityAvailable } =
+        await import('./enhancedConnectivity')
       expect(isEnhancedConnectivityAvailable).toBe(true)
     })
 
     test('isEnhancedConnectivityAvailable is false when no endpoint is set', async () => {
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = undefined
       vi.resetModules()
-      const { isEnhancedConnectivityAvailable } = await import(
-        './enhancedConnectivity'
-      )
+      const { isEnhancedConnectivityAvailable } =
+        await import('./enhancedConnectivity')
       expect(isEnhancedConnectivityAvailable).toBe(false)
     })
 
     test('isEnhancedConnectivityAvailable is false when invalid endpoint is set', async () => {
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = 'invalid-endpoint'
       vi.resetModules()
-      const { isEnhancedConnectivityAvailable } = await import(
-        './enhancedConnectivity'
-      )
+      const { isEnhancedConnectivityAvailable } =
+        await import('./enhancedConnectivity')
       expect(isEnhancedConnectivityAvailable).toBe(false)
     })
 
     test('getValidatedRtcConfigEndpoint returns endpoint when enhanced connectivity is available', async () => {
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = '/api/get-config'
       vi.resetModules()
-      const { getValidatedRtcConfigEndpoint } = await import(
-        './enhancedConnectivity'
-      )
+      const { getValidatedRtcConfigEndpoint } =
+        await import('./enhancedConnectivity')
       expect(getValidatedRtcConfigEndpoint()).toBe('/api/get-config')
     })
 
     test('getValidatedRtcConfigEndpoint returns null when enhanced connectivity is not available', async () => {
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = undefined
       vi.resetModules()
-      const { getValidatedRtcConfigEndpoint } = await import(
-        './enhancedConnectivity'
-      )
+      const { getValidatedRtcConfigEndpoint } =
+        await import('./enhancedConnectivity')
       expect(getValidatedRtcConfigEndpoint()).toBe(null)
     })
 

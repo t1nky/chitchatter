@@ -1,6 +1,4 @@
 import { Fragment, useContext, useEffect, useState } from 'react'
-import Box from '@mui/material/Box'
-import Paper from '@mui/material/Paper'
 
 import { RoomContext } from 'contexts/RoomContext'
 import { ShellContext } from 'contexts/ShellContext'
@@ -116,23 +114,12 @@ export const RoomVideoDisplay = ({
   }
 
   return (
-    <Paper
-      className="RoomVideoDisplay"
-      elevation={3}
-      square
-      sx={{
-        alignContent: 'center',
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-        padding: 1,
-        width: { width },
-        height: { height },
-      }}
+    <div
+      className="RoomVideoDisplay flex flex-col items-center overflow-auto rounded-none border bg-card p-2 shadow"
+      style={{ width, height, alignContent: 'center' }}
     >
       {selectedPeerStream && (
-        <Box sx={{ height: '80%', width: '100%' }}>
+        <div className="h-[80%] w-full">
           <PeerVideo
             numberOfVideos={numberOfVideos}
             onVideoClick={handleVideoClick}
@@ -141,22 +128,16 @@ export const RoomVideoDisplay = ({
             videoStream={selectedPeerStream.videoStream}
             streamType={selectedPeerStream.streamType}
           />
-        </Box>
+        </div>
       )}
-      <Box
-        sx={{
-          alignContent: 'center',
-          display: 'flex',
-          flexDirection: 'row',
-          flexGrow: 1,
+      <div
+        className="flex w-full grow flex-row items-center justify-center overflow-auto"
+        style={{
           flexWrap: selectedPeerStream ? 'nowrap' : 'wrap',
-          justifyContent: 'center',
-          overflow: 'auto',
-          width: '100%',
           ...(selectedPeerStream && {
             height: '20%',
             maxHeight: '20%',
-            pt: '0.5em',
+            paddingTop: '0.5em',
           }),
         }}
       >
@@ -206,7 +187,7 @@ export const RoomVideoDisplay = ({
             )}
           </Fragment>
         ))}
-      </Box>
-    </Paper>
+      </div>
+    </div>
   )
 }

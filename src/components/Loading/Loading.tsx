@@ -1,30 +1,21 @@
-import Box, { BoxProps } from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
+import { useTranslation } from 'react-i18next'
 
-interface WholePageLoadingProps extends BoxProps {}
+interface WholePageLoadingProps {
+  className?: string
+}
 
-export const WholePageLoading = ({
-  sx = [],
-  ...props
-}: WholePageLoadingProps) => {
+export const WholePageLoading = ({ className = '' }: WholePageLoadingProps) => {
+  const { t } = useTranslation()
+
   return (
-    <Box
-      sx={[
-        {
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      {...props}
+    <div
+      className={`absolute inset-0 flex items-center justify-center ${className}`}
     >
-      <CircularProgress aria-label="Loading" />
-    </Box>
+      <div
+        className="size-8 animate-spin rounded-full border-2 border-muted border-t-foreground"
+        role="progressbar"
+        aria-label={t('loading')}
+      />
+    </div>
   )
 }

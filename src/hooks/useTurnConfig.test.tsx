@@ -18,6 +18,16 @@ const mockTurnServer = {
   credential: 'N4EAUgpjMzPLrxSS',
 }
 
+const getExpectedApiUrl = (endpoint: string): string => {
+  if (/^(?:[a-z]+:)?\/\//i.test(endpoint)) {
+    return endpoint
+  }
+
+  return import.meta.env.VITE_API_BASE_URL
+    ? `${import.meta.env.VITE_API_BASE_URL}${endpoint}`
+    : endpoint
+}
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -70,12 +80,15 @@ describe('useTurnConfig', () => {
     expect(result.current.turnConfig).toEqual({
       iceServers: [mockTurnServer],
     })
-    expect(global.fetch).toHaveBeenCalledWith('/api/get-config', {
-      signal: expect.any(AbortSignal),
-      headers: {
-        Accept: 'application/json',
-      },
-    })
+    expect(global.fetch).toHaveBeenCalledWith(
+      getExpectedApiUrl('/api/get-config'),
+      {
+        signal: expect.any(AbortSignal),
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    )
   })
 
   test('returns empty iceServers when API fails', async () => {
@@ -256,12 +269,15 @@ describe('useTurnConfig', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/custom-rtc-config', {
-      signal: expect.any(AbortSignal),
-      headers: {
-        Accept: 'application/json',
-      },
-    })
+    expect(global.fetch).toHaveBeenCalledWith(
+      getExpectedApiUrl('/api/custom-rtc-config'),
+      {
+        signal: expect.any(AbortSignal),
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    )
     expect(result.current.turnConfig).toEqual({
       iceServers: [mockTurnServer],
     })
@@ -290,7 +306,7 @@ describe('useTurnConfig', () => {
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://api.example.com/rtc-config',
+      getExpectedApiUrl('https://api.example.com/rtc-config'),
       {
         signal: expect.any(AbortSignal),
         headers: {

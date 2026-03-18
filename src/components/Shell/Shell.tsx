@@ -1,10 +1,3 @@
-import { AlertColor } from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import CssBaseline from '@mui/material/CssBaseline'
-import MuiDrawer from '@mui/material/Drawer'
-import Link from '@mui/material/Link'
-import { ThemeProvider } from '@mui/material/styles'
-import Typography from '@mui/material/Typography'
 import { useWindowSize } from '@react-hook/window-size'
 import {
   PropsWithChildren,
@@ -16,8 +9,12 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { ErrorBoundary } from 'components/ErrorBoundary'
+import { AppSidebar } from 'components/app-sidebar'
+import { Sheet, SheetContent } from 'components/ui/sheet'
+import { SidebarProvider } from 'components/ui/sidebar'
 import { SettingsContext } from 'contexts/SettingsContext'
 import {
   MessageLog,
@@ -34,10 +31,9 @@ import {
   ScreenShareState,
   VideoState,
 } from 'models/chat'
-import { AlertOptions, QueryParamKeys } from 'models/shell'
+import { AlertOptions, AlertSeverity, QueryParamKeys } from 'models/shell'
 
 import { allowAdvancedRoomLinkSharing } from './constants'
-import { Drawer } from './Drawer'
 import {
   EnvironmentUnsupportedDialog,
   isEnvironmentSupported,
@@ -58,23 +54,26 @@ export interface ShellProps extends PropsWithChildren {
   appNeedsUpdate: boolean
 }
 
+const LG_BREAKPOINT = 1280
+
 const queryParams = new URLSearchParams(window.location.search)
 
 export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
+  const { t } = useTranslation()
   const { getUserSettings, updateUserSettings } = useContext(SettingsContext)
   const isEmbedded = queryParams.get(QueryParamKeys.IS_EMBEDDED) !== null
 
   const theme = useShellTheme()
 
   const [windowWidth] = useWindowSize()
-  const defaultSidebarsOpen = windowWidth >= theme.breakpoints.values.lg
+  const defaultSidebarsOpen = windowWidth >= LG_BREAKPOINT
 
   const peerRoomRef = useRef<PeerRoom>(null)
   const [isAlertShowing, setIsAlertShowing] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(defaultSidebarsOpen)
   const [isQRCodeDialogOpen, setIsQRCodeDialogOpen] = useState(false)
   const [isRoomShareDialogOpen, setIsRoomShareDialogOpen] = useState(false)
-  const [alertSeverity, setAlertSeverity] = useState<AlertColor>('info')
+  const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>('info')
   const [showAppBar, setShowAppBar] = useState(true)
   const [showRoomControls, setShowRoomControls] = useState(!isEmbedded)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -256,6 +255,14 @@ export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
     document.title = title
   }, [title])
 
+  useEffect(() => {
+    const root = document.documentElement
+    const isDarkMode = theme.mode === 'dark'
+
+    root.classList.toggle('dark', isDarkMode)
+    root.style.colorScheme = theme.mode
+  }, [theme.mode])
+
   const enterFullscreen = async () => {
     const body: any = document.body
 
@@ -330,22 +337,16 @@ export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
     }
   }, [])
 
-  const handleDrawerOpen = () => {
-    setIsDrawerOpen(true)
-  }
-
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false)
-  }
-
   const handlePeerListClick = () => {
-    setIsPeerListOpen(!isPeerListOpen)
+    setIsPeerListOpen(prev => !prev)
   }
+
+  const peerListAsOverlay = windowWidth < LG_BREAKPOINT
 
   const copyToClipboard = async (
     content: string,
     alert: string,
-    severity: AlertColor = 'success'
+    severity: AlertSeverity = 'success'
   ) => {
     await navigator.clipboard.writeText(content)
     shellContextValue.showAlert(alert, { severity })
@@ -359,7 +360,10 @@ export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
     ) {
       setIsRoomShareDialogOpen(true)
     } else {
-      copyToClipboard(window.location.href, 'Current URL copied to clipboard')
+      copyToClipboard(
+        window.location.href,
+        t('dialogs.roomShare.copiedCurrentUrl')
+      )
     }
   }
 
@@ -373,117 +377,128 @@ export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
 
   return (
     <ShellContext.Provider value={shellContextValue}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {isEnvironmentSupported ? (
-          <>
-            <UpgradeDialog appNeedsUpdate={appNeedsUpdate} />
-            <Box
-              className="Chitchatter"
-              sx={{
-                height: '100vh',
-                display: 'flex',
-                overflow: 'hidden',
-              }}
+      {isEnvironmentSupported ? (
+        <>
+          <UpgradeDialog appNeedsUpdate={appNeedsUpdate} />
+          <div className="Chitchatter flex h-screen overflow-hidden">
+            <NotificationArea
+              alertSeverity={alertSeverity}
+              alertText={alertText}
+              isAlertShowing={isAlertShowing}
+              onAlertClose={handleAlertClose}
+            />
+            <SidebarProvider
+              defaultOpen={defaultSidebarsOpen}
+              open={isEmbedded ? true : isDrawerOpen}
+              onOpenChange={isEmbedded ? undefined : setIsDrawerOpen}
+              style={
+                {
+                  '--header-height': '3.5rem',
+                } as React.CSSProperties
+              }
             >
-              <NotificationArea
-                alertSeverity={alertSeverity}
-                alertText={alertText}
-                isAlertShowing={isAlertShowing}
-                onAlertClose={handleAlertClose}
-              />
-              <ShellAppBar
-                onDrawerOpen={handleDrawerOpen}
-                onLinkButtonClick={handleLinkButtonClick}
-                isDrawerOpen={isEmbedded ? false : isDrawerOpen}
-                isPeerListOpen={isPeerListOpen}
-                title={title}
-                onPeerListClick={handlePeerListClick}
-                onRoomControlsClick={() =>
-                  setShowRoomControls(!showRoomControls)
-                }
-                setIsQRCodeDialogOpen={setIsQRCodeDialogOpen}
-                showAppBar={showAppBar}
-                isFullscreen={isFullscreen}
-                setIsFullscreen={setIsFullscreen}
-              />
-              {isEmbedded ? null : (
-                <Drawer
-                  isDrawerOpen={isDrawerOpen}
-                  onDrawerClose={handleDrawerClose}
-                />
-              )}
+              {isEmbedded ? null : <AppSidebar />}
               <RouteContent
-                isDrawerOpen={isEmbedded ? true : isDrawerOpen}
-                isPeerListOpen={isPeerListOpen}
-                showAppBar={showAppBar}
+                isPeerListOpen={!peerListAsOverlay && isPeerListOpen}
               >
-                <ErrorBoundary>{children}</ErrorBoundary>
-              </RouteContent>
-              <MuiDrawer
-                sx={{
-                  flexShrink: { xs: 1, sm: 0 },
-                  pointerEvents: 'none',
-                  width: peerListWidth,
-                  '& .MuiDrawer-paper': {
-                    width: peerListWidth,
-                    boxSizing: 'border-box',
-                  },
-                  ...(isPeerListOpen && {
-                    pointerEvents: 'auto',
-                  }),
-                }}
-                variant="persistent"
-                anchor="right"
-                open={isPeerListOpen}
-              >
-                <PeerList
-                  userId={userPeerId}
-                  roomId={roomId}
-                  onPeerListClose={handlePeerListClick}
-                  peerList={peerList}
-                  peerConnectionTypes={peerConnectionTypes}
-                  peerAudioChannelState={audioChannelState}
-                  peerAudioChannels={peerAudioChannels}
-                  connectionTestResults={connectionTestResults}
+                <ShellAppBar
+                  onLinkButtonClick={handleLinkButtonClick}
+                  title={title}
+                  onPeerListClick={handlePeerListClick}
+                  onRoomControlsClick={() => setShowRoomControls(prev => !prev)}
+                  setIsQRCodeDialogOpen={setIsQRCodeDialogOpen}
+                  showAppBar={showAppBar}
+                  isFullscreen={isFullscreen}
+                  setIsFullscreen={setIsFullscreen}
                 />
-                {isEmbedded ? (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      padding: '1em 1em 1.75em 1em',
-                      textAlign: 'center',
-                    }}
+                <div className="flex min-h-0 grow flex-col overflow-auto">
+                  <ErrorBoundary>{children}</ErrorBoundary>
+                </div>
+              </RouteContent>
+              {!peerListAsOverlay && (
+                <>
+                  {/* Gap div that pushes content left when peer list is open */}
+                  <div
+                    className="shrink-0 transition-[width] duration-200"
+                    style={{ width: isPeerListOpen ? peerListWidth : 0 }}
+                  />
+                  {/* Fixed peer list panel */}
+                  <div
+                    className={`fixed inset-y-0 right-0 z-30 p-2 transition-transform duration-200 ${
+                      isPeerListOpen ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+                    style={{ width: peerListWidth }}
                   >
-                    This conversation is powered by{' '}
-                    <Link
-                      href="https://github.com/jeremyckahn/chitchatter"
-                      target="_blank"
-                    >
-                      Chitchatter
-                    </Link>
-                  </Typography>
-                ) : null}
-              </MuiDrawer>
-              <QRCodeDialog
-                isOpen={isQRCodeDialogOpen}
-                handleClose={handleQRCodeDialogClose}
-              />
-              <RoomShareDialog
-                isOpen={isRoomShareDialogOpen}
-                handleClose={handleRoomShareDialogClose}
-                roomId={roomId ?? ''}
-                password={password ?? ''}
-                showAlert={showAlert}
-                copyToClipboard={copyToClipboard}
-              />
-              <ServerConnectionFailureDialog />
-            </Box>
-          </>
-        ) : (
-          <EnvironmentUnsupportedDialog />
-        )}
-      </ThemeProvider>
+                    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+                      <PeerList
+                        userId={userPeerId}
+                        roomId={roomId}
+                        onPeerListClose={handlePeerListClick}
+                        peerList={peerList}
+                        peerConnectionTypes={peerConnectionTypes}
+                        peerAudioChannelState={audioChannelState}
+                        peerAudioChannels={peerAudioChannels}
+                        connectionTestResults={connectionTestResults}
+                      />
+                      {isEmbedded ? (
+                        <p className="px-4 py-4 pb-7 text-center text-xs text-muted-foreground">
+                          {t('shell.embeddedFooterPrefix')}{' '}
+                          <a
+                            href="https://github.com/jeremyckahn/chitchatter"
+                            target="_blank"
+                            className="text-primary underline underline-offset-4 hover:text-primary/80"
+                            rel="noreferrer"
+                          >
+                            {t('shell.embeddedFooterLink')}
+                          </a>
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </>
+              )}
+            </SidebarProvider>
+            {peerListAsOverlay && (
+              <Sheet
+                open={isPeerListOpen}
+                onOpenChange={open => setIsPeerListOpen(open)}
+              >
+                <SheetContent
+                  side="right"
+                  className="w-[280px] p-0"
+                  showCloseButton={false}
+                >
+                  <PeerList
+                    userId={userPeerId}
+                    roomId={roomId}
+                    onPeerListClose={handlePeerListClick}
+                    peerList={peerList}
+                    peerConnectionTypes={peerConnectionTypes}
+                    peerAudioChannelState={audioChannelState}
+                    peerAudioChannels={peerAudioChannels}
+                    connectionTestResults={connectionTestResults}
+                  />
+                </SheetContent>
+              </Sheet>
+            )}
+            <QRCodeDialog
+              isOpen={isQRCodeDialogOpen}
+              handleClose={handleQRCodeDialogClose}
+            />
+            <RoomShareDialog
+              isOpen={isRoomShareDialogOpen}
+              handleClose={handleRoomShareDialogClose}
+              roomId={roomId ?? ''}
+              password={password ?? ''}
+              showAlert={showAlert}
+              copyToClipboard={copyToClipboard}
+            />
+            <ServerConnectionFailureDialog />
+          </div>
+        </>
+      ) : (
+        <EnvironmentUnsupportedDialog />
+      )}
     </ShellContext.Provider>
   )
 }

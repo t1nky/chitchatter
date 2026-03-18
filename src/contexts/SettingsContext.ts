@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 
-import { ColorMode, UserSettings } from 'models/settings'
+import { ColorMode, Language, UserSettings } from 'models/settings'
 import { encryption } from 'services/Encryption'
 
 import { DEFAULT_SOUND } from 'config/soundNames'
@@ -16,6 +16,7 @@ export const SettingsContext = createContext<SettingsContextProps>({
     userId: '',
     customUsername: '',
     colorMode: ColorMode.DARK,
+    language: Language.ENGLISH,
     playSoundOnNewMessage: true,
     showNotificationOnNewMessage: true,
     showActiveTypingStatus: true,

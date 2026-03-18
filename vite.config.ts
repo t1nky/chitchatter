@@ -1,12 +1,13 @@
 /// <reference types="vitest" />
+import fs from 'fs'
 import path from 'path'
 
 import { fileURLToPath } from 'url'
 
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import svgr from 'vite-plugin-svgr'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import macrosPlugin from 'vite-plugin-babel-macros'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -18,6 +19,7 @@ const srcPaths = [
   'hooks',
   'config',
   'contexts',
+  'i18n',
   'lib',
   'models',
   'pages',
@@ -33,11 +35,11 @@ const srcPathAliases = srcPaths.reduce((acc, dir) => {
 }, {})
 
 const config = () => {
+  const outDir = path.resolve(__dirname, 'dist')
+  fs.mkdirSync(outDir, { recursive: true })
+
   return defineConfig({
-    // NOTE: Uncomment this if you are hosting Chitchatter on GitHub Pages
-    // without a custom domain. If you renamed the repo to something other than
-    // "chitchatter", then use that instead of "chitchatter" here.
-    // base: '/chitchatter/',
+    base: '/chitchatter/',
     server: {
       proxy: {
         '/api': {
@@ -50,25 +52,23 @@ const config = () => {
       },
     },
     build: {
-      // NOTE: This isn't really working. At the very least, it's still useful
-      // for exposing source code to users.
-      // See: https://github.com/vitejs/vite/issues/15012#issuecomment-1956429165
+      outDir,
       sourcemap: true,
     },
+    oxc: {
+      inject: {
+        Buffer: ['buffer', 'Buffer'],
+        global: [path.resolve(__dirname, 'src/shims/global'), 'default'],
+        process: ['process', 'default'],
+      },
+    },
     plugins: [
+      tailwindcss(),
       svgr({
         include: '**/*.svg?react',
       }),
       react(),
       macrosPlugin(),
-      nodePolyfills({
-        globals: {
-          Buffer: true,
-          global: true,
-          process: true,
-        },
-        protocolImports: true,
-      }),
       VitePWA({
         registerType: 'prompt',
         devOptions: {
@@ -82,12 +82,17 @@ const config = () => {
     ],
     resolve: {
       alias: {
+        '@': path.resolve(__dirname, './src'),
         webtorrent: fileURLToPath(
           new URL(
             './node_modules/webtorrent/webtorrent.min.js',
             import.meta.url
           )
         ),
+        buffer: 'buffer',
+        process: 'process/browser',
+        stream: 'stream-browserify',
+        util: 'util',
         ...srcPathAliases,
       },
     },

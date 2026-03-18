@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SettingsContext } from 'contexts/SettingsContext'
 import { MemoryRouter as Router } from 'react-router-dom'
 import { userSettingsContextStubFactory } from 'test-utils/stubs/settingsContext'
+import { TooltipProvider } from 'components/ui/tooltip'
 
 import { Shell, ShellProps } from './Shell'
 
@@ -29,15 +30,17 @@ const ShellStub = (shellProps: Partial<ShellProps> = {}) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <SettingsContext.Provider value={userSettingsStub}>
-          <Shell
-            appNeedsUpdate={false}
-            userPeerId={mockUserPeerId}
-            {...shellProps}
-          />
-        </SettingsContext.Provider>
-      </Router>
+      <TooltipProvider>
+        <Router>
+          <SettingsContext.Provider value={userSettingsStub}>
+            <Shell
+              appNeedsUpdate={false}
+              userPeerId={mockUserPeerId}
+              {...shellProps}
+            />
+          </SettingsContext.Provider>
+        </Router>
+      </TooltipProvider>
     </QueryClientProvider>
   )
 }
@@ -46,21 +49,27 @@ describe('Shell', () => {
   describe('menu drawer', () => {
     test('can be opened', async () => {
       render(<ShellStub />)
-      const menuButton = screen.getByLabelText('Open menu')
+      const menuButton = screen.getByRole('button', {
+        name: 'Toggle Sidebar',
+      })
       await waitFor(() => {
         userEvent.click(menuButton)
       })
 
       const navigation = screen.getByLabelText('Navigation menu')
+      const sidebar = navigation.closest('[data-slot="sidebar"]')
 
       await waitFor(() => {
         expect(navigation).toBeVisible()
+        expect(sidebar).toHaveAttribute('data-state', 'expanded')
       })
     })
 
     test('can be closed', async () => {
       render(<ShellStub />)
-      const menuButton = screen.getByLabelText('Open menu')
+      const menuButton = screen.getByRole('button', {
+        name: 'Toggle Sidebar',
+      })
 
       await waitFor(() => {
         userEvent.click(menuButton)
@@ -73,9 +82,10 @@ describe('Shell', () => {
       })
 
       const navigation = screen.getByLabelText('Navigation menu')
+      const sidebar = navigation.closest('[data-slot="sidebar"]')
 
       await waitFor(() => {
-        expect(navigation).not.toBeVisible()
+        expect(sidebar).toHaveAttribute('data-state', 'collapsed')
       })
     })
   })
