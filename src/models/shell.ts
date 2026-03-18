@@ -1,6 +1,8 @@
-import { AlertProps } from '@mui/material/Alert'
+export type AlertSeverity = 'success' | 'error' | 'warning' | 'info'
 
-export type AlertOptions = Pick<AlertProps, 'severity'>
+export type AlertOptions = {
+  severity?: AlertSeverity
+}
 
 export enum QueryParamKeys {
   GET_SDK_CONFIG = 'getSdkConfig',

@@ -1,7 +1,3 @@
-import Box from '@mui/material/Box'
-import Divider from '@mui/material/Divider'
-import useTheme from '@mui/material/styles/useTheme'
-import Zoom from '@mui/material/Zoom'
 import { useWindowSize } from '@react-hook/window-size'
 import { useContext } from 'react'
 import { v4 as uuid } from 'uuid'
@@ -9,6 +5,7 @@ import { v4 as uuid } from 'uuid'
 import { ChatTranscript } from 'components/ChatTranscript'
 import { WholePageLoading } from 'components/Loading'
 import { MessageForm } from 'components/MessageForm'
+import { Separator } from 'components/ui/separator'
 import { trackerUrls } from 'config/trackerUrls'
 import { RoomContext } from 'contexts/RoomContext'
 import { SettingsContext } from 'contexts/SettingsContext'
@@ -41,8 +38,10 @@ interface RoomInnerProps extends RoomProps {
   turnConfig: RTCConfiguration
 }
 
+const DEFAULT_APP_ID = `${encodeURI(window.location.origin)}_${import.meta.env.VITE_NAME}`
+
 const RoomCore = ({
-  appId = `${encodeURI(window.location.origin)}_${process.env.VITE_NAME}`,
+  appId = DEFAULT_APP_ID,
   getUuid = uuid,
   encryptionService = encryption,
   timeService = time,
@@ -52,7 +51,6 @@ const RoomCore = ({
   targetPeerId,
   turnConfig,
 }: RoomInnerProps) => {
-  const theme = useTheme()
   const settingsContext = useContext(SettingsContext)
   const { showActiveTypingStatus, publicKey } =
     settingsContext.getUserSettings()
@@ -108,59 +106,37 @@ const RoomCore = ({
 
   return (
     <RoomContext.Provider value={roomContextValue}>
-      <Box
-        className="Room"
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexGrow: '1',
-          overflow: 'auto',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            flexGrow: '1',
-            overflow: 'auto',
-          }}
-        >
+      <div className="Room flex h-full grow overflow-auto">
+        <div className="flex grow flex-col overflow-auto">
           {!isDirectMessageRoom && (
-            <Zoom in={showRoomControls}>
-              <Box
-                sx={{
-                  alignItems: 'flex-start',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  overflow: 'visible',
-                  height: 0,
-                  position: 'relative',
-                  top: theme.spacing(1),
-                }}
+            <div
+              className={`flex items-start justify-center overflow-visible h-0 relative top-2 transition-all duration-300 ${
+                showRoomControls
+                  ? 'scale-100 opacity-100'
+                  : 'pointer-events-none scale-0 opacity-0'
+              }`}
+            >
+              <RoomAudioControls peerRoom={peerRoom} />
+              <RoomVideoControls peerRoom={peerRoom} />
+              <RoomScreenShareControls peerRoom={peerRoom} />
+              <RoomFileUploadControls
+                peerRoom={peerRoom}
+                onInlineMediaUpload={handleInlineMediaUpload}
+              />
+              <div
+                className={`transition-all duration-300 ${
+                  showVideoDisplay
+                    ? 'scale-100 opacity-100'
+                    : 'pointer-events-none scale-0 opacity-0'
+                }`}
               >
-                <RoomAudioControls peerRoom={peerRoom} />
-                <RoomVideoControls peerRoom={peerRoom} />
-                <RoomScreenShareControls peerRoom={peerRoom} />
-                <RoomFileUploadControls
-                  peerRoom={peerRoom}
-                  onInlineMediaUpload={handleInlineMediaUpload}
-                />
-                <Zoom in={showVideoDisplay} mountOnEnter unmountOnExit>
-                  <span>
-                    <RoomShowMessagesControls />
-                  </span>
-                </Zoom>
-              </Box>
-            </Zoom>
+                {showVideoDisplay && <RoomShowMessagesControls />}
+              </div>
+            </div>
           )}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: landscape ? 'row' : 'column',
-              height: '100%',
-              width: '100%',
-              overflow: 'auto',
-            }}
+          <div
+            className="flex h-full w-full overflow-auto"
+            style={{ flexDirection: landscape ? 'row' : 'column' }}
           >
             {showVideoDisplay && (
               <RoomVideoDisplay
@@ -170,11 +146,9 @@ const RoomCore = ({
               />
             )}
             {showMessages && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flexGrow: '1',
+              <div
+                className="flex flex-col grow"
+                style={{
                   width: showVideoDisplay && landscape ? '400px' : '100%',
                   height: landscape ? '100%' : '40%',
                 }}
@@ -182,10 +156,10 @@ const RoomCore = ({
                 <ChatTranscript
                   messageLog={messageLog}
                   userId={userId}
-                  sx={{ ...(isDirectMessageRoom && { pt: 1 }) }}
+                  className={isDirectMessageRoom ? 'pt-2' : undefined}
                 />
-                <Divider />
-                <Box>
+                <Separator />
+                <div>
                   <MessageForm
                     onMessageSubmit={handleMessageSubmit}
                     isMessageSending={isMessageSending}
@@ -196,12 +170,12 @@ const RoomCore = ({
                       isDirectMessageRoom={isDirectMessageRoom}
                     />
                   ) : null}
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
     </RoomContext.Provider>
   )
 }

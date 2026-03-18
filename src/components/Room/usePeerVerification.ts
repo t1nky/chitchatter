@@ -7,6 +7,7 @@ import { PeerAction } from 'models/network'
 import { verificationTimeout } from 'config/messaging'
 import { usePeerNameDisplay } from 'components/PeerNameDisplay'
 import { usePeerAction } from 'hooks/usePeerAction'
+import { useTranslation } from 'react-i18next'
 
 interface UserPeerVerificationProps {
   peerRoom: PeerRoom
@@ -21,6 +22,7 @@ export const usePeerVerification = ({
   isDirectMessageRoom,
   encryptionService = encryption,
 }: UserPeerVerificationProps) => {
+  const { t } = useTranslation()
   const { updatePeer, peerList, showAlert } = useContext(ShellContext)
   const namespace = isDirectMessageRoom ? 'dm' : 'g'
 
@@ -65,7 +67,9 @@ export const usePeerVerification = ({
         })
 
         showAlert(
-          `Verification for ${getDisplayUsername(matchingPeer.userId)} failed`,
+          t('room.verification.failed', {
+            name: getDisplayUsername(matchingPeer.userId),
+          }),
           {
             severity: 'error',
           }
@@ -103,7 +107,9 @@ export const usePeerVerification = ({
         })
 
         showAlert(
-          `Verification for ${getDisplayUsername(peer.userId)} timed out`,
+          t('room.verification.timedOut', {
+            name: getDisplayUsername(peer.userId),
+          }),
           {
             severity: 'error',
           }
@@ -123,6 +129,7 @@ export const usePeerVerification = ({
       getDisplayUsername,
       sendVerificationTokenEncrypted,
       showAlert,
+      t,
       updatePeer,
     ]
   )

@@ -1,30 +1,24 @@
 import { PropsWithChildren, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import useTheme from '@mui/material/styles/useTheme'
-import Box from '@mui/material/Box'
-import MuiDrawer from '@mui/material/Drawer'
-import List from '@mui/material/List'
-import MuiLink from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Home from '@mui/icons-material/Home'
-import SettingsApplications from '@mui/icons-material/SettingsRounded'
-import QuestionMark from '@mui/icons-material/QuestionMark'
-import Brightness4Icon from '@mui/icons-material/Brightness4'
-import Brightness7Icon from '@mui/icons-material/Brightness7'
-import ReportIcon from '@mui/icons-material/Report'
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Home01Icon,
+  Setting06Icon,
+  QuestionIcon,
+  Alert02Icon,
+  Moon02Icon,
+  Sun03Icon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import GitInfo from 'react-git-info/macro'
+import { useTranslation } from 'react-i18next'
 
 import { routes } from 'config/routes'
 import { SettingsContext } from 'contexts/SettingsContext'
 import { ColorMode } from 'models/settings'
+import { Button } from 'components/ui/button'
+import { Separator } from 'components/ui/separator'
 
 const { commit } = GitInfo()
 
@@ -36,7 +30,7 @@ export interface DrawerProps extends PropsWithChildren {
 }
 
 export const Drawer = ({ isDrawerOpen, onDrawerClose }: DrawerProps) => {
-  const theme = useTheme()
+  const { t } = useTranslation()
   const settingsContext = useContext(SettingsContext)
   const colorMode = settingsContext.getUserSettings().colorMode
 
@@ -47,108 +41,123 @@ export const Drawer = ({ isDrawerOpen, onDrawerClose }: DrawerProps) => {
   }
 
   return (
-    <MuiDrawer
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-        },
-      }}
-      variant="persistent"
-      anchor="left"
-      open={isDrawerOpen}
+    <div
+      className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r bg-background transition-transform duration-200 ${
+        isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
     >
-      <Box
-        sx={() => ({
-          display: 'flex',
-          alignItems: 'center',
-          padding: theme.spacing(0, 1),
-          // necessary for drawer content to be pushed below app bar
-          ...theme.mixins.toolbar,
-          justifyContent: 'flex-end',
-        })}
-      >
-        <IconButton onClick={onDrawerClose} aria-label="Close menu">
-          {theme.direction === 'ltr' ? (
-            <ChevronLeftIcon />
-          ) : (
-            <ChevronRightIcon />
-          )}
-        </IconButton>
-      </Box>
-      <Divider />
-      <Box component="nav" aria-label="Navigation menu">
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to={routes.ROOT}>
-              <ListItemIcon>
-                <Home />
-              </ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to={routes.SETTINGS}>
-              <ListItemIcon>
-                <SettingsApplications />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to={routes.ABOUT}>
-              <ListItemIcon>
-                <QuestionMark />
-              </ListItemIcon>
-              <ListItemText primary="About" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to={routes.DISCLAIMER}>
-              <ListItemIcon>
-                <ReportIcon />
-              </ListItemIcon>
-              <ListItemText primary="Disclaimer" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleColorModeToggleClick}>
-              <ListItemIcon>
-                {theme.palette.mode === 'dark' ? (
-                  <Brightness7Icon />
-                ) : (
-                  <Brightness4Icon />
-                )}
-              </ListItemIcon>
-              <ListItemText primary="Change theme" />
-            </ListItemButton>
-          </ListItem>
-        </List>
-        <Divider />
-        <Box sx={{ padding: 2 }}>
-          <Typography variant="subtitle2">
-            Build signature:{' '}
-            <Typography
-              sx={{
-                fontFamily: 'monospace',
-                display: 'inline',
-              }}
+      <div className="flex h-14 items-center justify-end px-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onDrawerClose}
+          aria-label={t('navigation.closeMenu')}
+        >
+          <HugeiconsIcon
+            icon={
+              document.documentElement.dir === 'rtl'
+                ? ArrowRight01Icon
+                : ArrowLeft01Icon
+            }
+            strokeWidth={1.8}
+            className="size-4"
+          />
+        </Button>
+      </div>
+      <Separator />
+      <nav aria-label={t('navigation.navigationMenu')}>
+        <ul className="flex flex-col">
+          <li>
+            <Link
+              to={routes.ROOT}
+              className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
             >
-              <MuiLink
+              <HugeiconsIcon
+                icon={Home01Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+              <span>{t('navigation.home')}</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to={routes.SETTINGS}
+              className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
+            >
+              <HugeiconsIcon
+                icon={Setting06Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+              <span>{t('navigation.settings')}</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to={routes.ABOUT}
+              className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
+            >
+              <HugeiconsIcon
+                icon={QuestionIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+              <span>{t('navigation.about')}</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to={routes.DISCLAIMER}
+              className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
+            >
+              <HugeiconsIcon
+                icon={Alert02Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+              <span>{t('navigation.disclaimer')}</span>
+            </Link>
+          </li>
+          <li>
+            <button
+              onClick={handleColorModeToggleClick}
+              className="flex w-full items-center gap-3 px-4 py-2 hover:bg-muted"
+            >
+              {colorMode === ColorMode.DARK ? (
+                <HugeiconsIcon
+                  icon={Sun03Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              ) : (
+                <HugeiconsIcon
+                  icon={Moon02Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              )}
+              <span>{t('navigation.changeTheme')}</span>
+            </button>
+          </li>
+        </ul>
+        <Separator />
+        <div className="p-4">
+          <p className="text-sm font-medium">
+            {t('navigation.buildSignature')}:{' '}
+            <span className="font-mono">
+              <a
                 target="_blank"
-                rel="noopener"
-                href={`${import.meta.env.VITE_GITHUB_REPO}/commit/${
-                  commit.hash
-                }`}
+                rel="noopener noreferrer"
+                href={`${import.meta.env.VITE_GITHUB_REPO}/commit/${commit.hash}`}
+                className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
                 {commit.shortHash}
-              </MuiLink>
-            </Typography>
-          </Typography>
-        </Box>
-      </Box>
-    </MuiDrawer>
+              </a>
+            </span>
+          </p>
+        </div>
+      </nav>
+    </div>
   )
 }

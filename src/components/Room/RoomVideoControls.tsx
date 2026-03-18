@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import Box from '@mui/material/Box'
-import Videocam from '@mui/icons-material/Videocam'
-import VideocamOff from '@mui/icons-material/VideocamOff'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import Tooltip from '@mui/material/Tooltip'
+import { Video01Icon, VideoOffIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { PeerRoom } from 'lib/PeerRoom'
+
+import { Tooltip, TooltipTrigger, TooltipContent } from 'components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from 'components/ui/dropdown-menu'
 
 import { useRoomVideo } from './useRoomVideo'
 import { MediaButton } from './MediaButton'
@@ -19,6 +21,7 @@ export interface RoomVideoControlsProps {
 }
 
 export function RoomVideoControls({ peerRoom }: RoomVideoControlsProps) {
+  const { t } = useTranslation()
   const {
     videoDevices,
     isCameraEnabled,
@@ -26,96 +29,81 @@ export function RoomVideoControls({ peerRoom }: RoomVideoControlsProps) {
     handleVideoDeviceSelect,
   } = useRoomVideo({ peerRoom })
 
-  const [videoAnchorEl, setVideoAnchorEl] = useState<null | HTMLElement>(null)
-  const isVideoDeviceSelectOpen = Boolean(videoAnchorEl)
   const [selectedVideoDeviceIdx, setSelectedVideoDeviceIdx] = useState(0)
 
   const handleEnableCameraClick = () => {
     setIsCameraEnabled(!isCameraEnabled)
   }
 
-  const handleVideoDeviceListItemClick = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
-    setVideoAnchorEl(event.currentTarget)
-  }
-
-  const handleVideoDeviceMenuItemClick = (
-    _event: React.MouseEvent<HTMLElement>,
-    idx: number
-  ) => {
+  const handleVideoDeviceMenuItemClick = (idx: number) => {
     setSelectedVideoDeviceIdx(idx)
     handleVideoDeviceSelect(videoDevices[idx])
-    setVideoAnchorEl(null)
-  }
-
-  const handleVideoInputSelectMenuClose = () => {
-    setVideoAnchorEl(null)
   }
 
   return (
-    <Box
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        px: 1,
-      }}
-    >
-      <Tooltip title={isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}>
-        <MediaButton
-          isActive={isCameraEnabled}
-          aria-label="toggle camera"
-          onClick={handleEnableCameraClick}
-        >
-          {isCameraEnabled ? <Videocam /> : <VideocamOff />}
-        </MediaButton>
+    <div className="flex flex-col items-center justify-center px-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <MediaButton
+            isActive={isCameraEnabled}
+            aria-label={t('room.controls.cameraControl')}
+            onClick={handleEnableCameraClick}
+          >
+            {isCameraEnabled ? (
+              <HugeiconsIcon
+                icon={Video01Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={VideoOffIcon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            )}
+          </MediaButton>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isCameraEnabled
+            ? t('room.controls.turnOffCamera')
+            : t('room.controls.turnOnCamera')}
+        </TooltipContent>
       </Tooltip>
       {videoDevices.length > 0 && isCameraEnabled && (
-        <Box sx={{ mt: 1 }}>
-          <List
-            component="nav"
-            aria-label="Camera selection"
-            sx={{ bgcolor: 'background.paper' }}
-          >
-            <ListItem
-              button
-              id="video-input-select-button"
-              aria-haspopup="listbox"
-              aria-controls="video-input-select-menu"
-              aria-label="Camera to use"
-              aria-expanded={isVideoDeviceSelectOpen ? 'true' : undefined}
-              onClick={handleVideoDeviceListItemClick}
-            >
-              <ListItemText
-                primary="Selected camera"
-                secondary={videoDevices[selectedVideoDeviceIdx]?.label}
-              />
-            </ListItem>
-          </List>
-          <Menu
-            id="video-input-select-menu"
-            anchorEl={videoAnchorEl}
-            open={isVideoDeviceSelectOpen}
-            onClose={handleVideoInputSelectMenuClose}
-            MenuListProps={{
-              'aria-labelledby': 'video-input-select-button',
-              role: 'listbox',
-            }}
-          >
-            {videoDevices.map((videoDevice, idx) => (
-              <MenuItem
-                key={videoDevice.deviceId}
-                selected={idx === selectedVideoDeviceIdx}
-                onClick={event => handleVideoDeviceMenuItemClick(event, idx)}
+        <div className="mt-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                id="video-input-select-button"
+                aria-haspopup="listbox"
+                aria-label={t('room.controls.cameraToUse')}
+                className="cursor-pointer rounded-md bg-card px-3 py-2 text-left text-sm"
               >
-                {videoDevice.label}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Box>
+                <div className="text-xs text-muted-foreground">
+                  {t('room.controls.selectedCamera')}
+                </div>
+                <div>{videoDevices[selectedVideoDeviceIdx]?.label}</div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              id="video-input-select-menu"
+              aria-labelledby="video-input-select-button"
+              role="listbox"
+            >
+              {videoDevices.map((videoDevice, idx) => (
+                <DropdownMenuItem
+                  key={videoDevice.deviceId}
+                  className={idx === selectedVideoDeviceIdx ? 'bg-accent' : ''}
+                  onClick={() => handleVideoDeviceMenuItemClick(idx)}
+                >
+                  {videoDevice.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }

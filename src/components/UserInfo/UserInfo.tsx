@@ -1,18 +1,7 @@
 import { useState, useContext, ChangeEvent, SyntheticEvent } from 'react'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
-import Button from '@mui/material/Button'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import Tooltip from '@mui/material/Tooltip'
-import useTheme from '@mui/material/styles/useTheme'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import { InformationCircleIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { ShellContext } from 'contexts/ShellContext'
 import { getPeerName } from 'components/PeerNameDisplay'
@@ -20,14 +9,28 @@ import { SettingsContext } from 'contexts/SettingsContext'
 import { PublicKey } from 'components/PublicKey'
 import { PeerNameDisplay } from 'components/PeerNameDisplay'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'components/ui/dialog'
+import { Button } from 'components/ui/button'
+import { Input } from 'components/ui/input'
+import { Label } from 'components/ui/label'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'components/ui/tooltip'
+
 interface UserInfoProps {
   userId: string
+  showLabel?: boolean
 }
 
 const maxCustomUsernameLength = 30
 
-export const UserInfo = ({ userId }: UserInfoProps) => {
-  const theme = useTheme()
+export const UserInfo = ({ userId, showLabel = true }: UserInfoProps) => {
+  const { t } = useTranslation()
   const userName = getPeerName(userId)
 
   const { customUsername, setCustomUsername, showAlert } =
@@ -48,11 +51,11 @@ export const UserInfo = ({ userId }: UserInfoProps) => {
     setCustomUsername(trimmedUsername)
 
     if (trimmedUsername.length) {
-      showAlert(`Username changed to "${trimmedUsername}"`, {
+      showAlert(t('userInfo.changed', { name: trimmedUsername }), {
         severity: 'success',
       })
     } else {
-      showAlert(`Username reset`, { severity: 'success' })
+      showAlert(t('userInfo.reset'), { severity: 'success' })
     }
   }
 
@@ -76,53 +79,68 @@ export const UserInfo = ({ userId }: UserInfoProps) => {
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <FormControl sx={{ width: '100%' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <TextField
+        <div className="grid min-w-0 gap-1.5">
+          {showLabel && (
+            <Label
+              htmlFor="custom-username"
+              className="text-xs text-muted-foreground"
+            >
+              {t('userInfo.yourUsername')}
+            </Label>
+          )}
+          <div className="flex items-center gap-2">
+            <Input
+              id="custom-username"
+              className="min-w-0 flex-1"
               onChange={handleChange}
               onBlur={handleBlur}
-              variant="outlined"
-              label={`${userName}`}
-              sx={{ width: '100%' }}
               value={inflightCustomUsername}
-              inputProps={{ maxLength: maxCustomUsernameLength }}
+              maxLength={maxCustomUsernameLength}
+              placeholder={userName}
             />
-            <Tooltip title="Reveal your user info">
-              <IconButton
-                sx={{
-                  ml: 1.5,
-                  color: theme.palette.action.active,
-                }}
-                onClick={handleInfoButtonClick}
-              >
-                <InfoOutlinedIcon fontSize="large" />
-              </IconButton>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleInfoButtonClick}
+                >
+                  <HugeiconsIcon
+                    icon={InformationCircleIcon}
+                    strokeWidth={1.8}
+                    className="size-4"
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('userInfo.reveal')}</TooltipContent>
             </Tooltip>
-          </Box>
-          <FormHelperText>Your username</FormHelperText>
-        </FormControl>
+          </div>
+        </div>
       </form>
-      <Dialog open={isInfoDialogOpen} onClose={handleInfoDialogClose}>
-        <DialogTitle>
-          <Box component="span">
-            <PeerNameDisplay sx={{ fontSize: 'inherit' }}>
-              {userId}
-            </PeerNameDisplay>
-          </Box>
-        </DialogTitle>
+      <Dialog
+        open={isInfoDialogOpen}
+        onOpenChange={open => {
+          if (!open) handleInfoDialogClose()
+        }}
+      >
         <DialogContent>
-          <DialogContentText>
-            Your public key (generated locally):
-          </DialogContentText>
-          <PublicKey publicKey={publicKey} />
-          <DialogContentText>
-            Your private key, which was also generated locally, is hidden and
-            only exists on your device.
-          </DialogContentText>
+          <DialogHeader>
+            <DialogTitle>
+              <PeerNameDisplay>{userId}</PeerNameDisplay>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <DialogDescription>{t('userInfo.publicKey')}</DialogDescription>
+            <PublicKey publicKey={publicKey} />
+            <DialogDescription>{t('userInfo.privateKey')}</DialogDescription>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleInfoDialogClose}>
+              {t('userInfo.close')}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleInfoDialogClose}>Close</Button>
-        </DialogActions>
       </Dialog>
     </>
   )

@@ -1,78 +1,49 @@
 import { useContext } from 'react'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { ShellContext } from 'contexts/ShellContext'
-import {
-  PeerNameDisplay,
-  PeerNameDisplayProps,
-} from 'components/PeerNameDisplay/PeerNameDisplay'
+import { usePeerNameDisplay } from 'components/PeerNameDisplay'
 
 export const TypingStatusBar = ({
   isDirectMessageRoom,
 }: {
   isDirectMessageRoom: boolean
 }) => {
+  const { t } = useTranslation()
   const { peerList } = useContext(ShellContext)
+  const { getDisplayUsername } = usePeerNameDisplay()
   const typingPeers = peerList.filter(
     ({ isTypingGroupMessage, isTypingDirectMessage }) =>
       isDirectMessageRoom ? isTypingDirectMessage : isTypingGroupMessage
   )
-
-  const peerNameDisplayProps: Partial<PeerNameDisplayProps> = {
-    variant: 'caption',
-    sx: theme => ({
-      color: theme.palette.text.secondary,
-      fontWeight: theme.typography.fontWeightBold,
-    }),
-  }
 
   let statusMessage = <></>
 
   if (typingPeers.length === 1) {
     statusMessage = (
       <>
-        <PeerNameDisplay {...peerNameDisplayProps}>
-          {typingPeers[0].userId}
-        </PeerNameDisplay>{' '}
-        is typing...
+        {t('room.typing.one', {
+          name: getDisplayUsername(typingPeers[0].userId),
+        })}
       </>
     )
   } else if (typingPeers.length === 2) {
     statusMessage = (
       <>
-        <PeerNameDisplay {...peerNameDisplayProps}>
-          {typingPeers[0].userId}
-        </PeerNameDisplay>{' '}
-        and{' '}
-        <PeerNameDisplay {...peerNameDisplayProps}>
-          {typingPeers[1].userId}
-        </PeerNameDisplay>{' '}
-        are typing...
+        {t('room.typing.two', {
+          first: getDisplayUsername(typingPeers[0].userId),
+          second: getDisplayUsername(typingPeers[1].userId),
+        })}
       </>
     )
   } else if (typingPeers.length > 2) {
-    statusMessage = <>Several people are typing...</>
+    statusMessage = <>{t('room.typing.many')}</>
   }
 
   return (
-    <Box>
-      <Typography
-        variant="caption"
-        sx={theme => ({
-          color: theme.palette.text.secondary,
-          display: 'block',
-          fontWeight: theme.typography.fontWeightBold,
-          height: '1.75rem',
-          maxHeight: '1.75rem',
-          overflow: 'hidden',
-          px: 2,
-          py: 0.5,
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        })}
-      >
+    <div>
+      <span className="block h-7 max-h-7 overflow-hidden text-ellipsis whitespace-nowrap px-4 py-1 text-xs font-bold text-muted-foreground">
         {statusMessage}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   )
 }

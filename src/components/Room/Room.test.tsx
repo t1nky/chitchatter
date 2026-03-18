@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+import { TooltipProvider } from 'components/ui/tooltip'
 import { userSettingsContextStubFactory } from 'test-utils/stubs/settingsContext'
 import { mockEncryptionService } from 'test-utils/mocks/mockEncryptionService'
 import { SettingsContext } from 'contexts/SettingsContext'
@@ -71,15 +72,17 @@ vi.mock('trystero/torrent', () => ({
 
 const RouteStub = ({ children }: PropsWithChildren) => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router initialEntries={['/public/abc123']}>
-        <SettingsContext.Provider value={userSettingsStub}>
-          <Routes>
-            <Route path="/public/:roomId" element={children}></Route>
-          </Routes>
-        </SettingsContext.Provider>
-      </Router>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router initialEntries={['/public/abc123']}>
+          <SettingsContext.Provider value={userSettingsStub}>
+            <Routes>
+              <Route path="/public/:roomId" element={children}></Route>
+            </Routes>
+          </SettingsContext.Provider>
+        </Router>
+      </QueryClientProvider>
+    </TooltipProvider>
   )
 }
 

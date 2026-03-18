@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import Box from '@mui/material/Box'
-import RecordVoiceOver from '@mui/icons-material/RecordVoiceOver'
-import VoiceOverOff from '@mui/icons-material/VoiceOverOff'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import Tooltip from '@mui/material/Tooltip'
+import { Mic01Icon, MicOff01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { PeerRoom } from 'lib/PeerRoom'
+
+import { Tooltip, TooltipTrigger, TooltipContent } from 'components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from 'components/ui/dropdown-menu'
 
 import { useRoomAudio } from './useRoomAudio'
 import { MediaButton } from './MediaButton'
@@ -20,6 +22,7 @@ export interface RoomAudioControlsProps {
 }
 
 export function RoomAudioControls({ peerRoom }: RoomAudioControlsProps) {
+  const { t } = useTranslation()
   const {
     audioDevices,
     isSpeakingToRoom,
@@ -27,16 +30,12 @@ export function RoomAudioControls({ peerRoom }: RoomAudioControlsProps) {
     handleAudioDeviceSelect,
   } = useRoomAudio({ peerRoom })
 
-  const [audioAnchorEl, setAudioAnchorEl] = useState<null | HTMLElement>(null)
-  const isAudioDeviceSelectOpen = Boolean(audioAnchorEl)
   const [selectedAudioDeviceIdx, setSelectedAudioDeviceIdx] = useState(0)
 
-  // When keys are pressed, turn on the mic
   useHotkeys('ctrl+`', () => {
     setIsSpeakingToRoom(true)
   })
 
-  // When keys are released, mic is turned off
   useHotkeys(
     'ctrl+`',
     () => {
@@ -49,94 +48,75 @@ export function RoomAudioControls({ peerRoom }: RoomAudioControlsProps) {
     setIsSpeakingToRoom(!isSpeakingToRoom)
   }
 
-  const handleAudioDeviceListItemClick = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
-    setAudioAnchorEl(event.currentTarget)
-  }
-
-  const handleAudioDeviceMenuItemClick = (
-    _event: React.MouseEvent<HTMLElement>,
-    idx: number
-  ) => {
+  const handleAudioDeviceMenuItemClick = (idx: number) => {
     setSelectedAudioDeviceIdx(idx)
     handleAudioDeviceSelect(audioDevices[idx])
-    setAudioAnchorEl(null)
-  }
-
-  const handleAudioInputSelectMenuClose = () => {
-    setAudioAnchorEl(null)
   }
 
   return (
-    <Box
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        px: 1,
-      }}
-    >
-      <Tooltip
-        title={
-          isSpeakingToRoom
-            ? 'Turn off microphone'
-            : 'Turn on microphone and speak to room (hold ctrl + ` to speak)'
-        }
-      >
-        <MediaButton
-          isActive={isSpeakingToRoom}
-          aria-label="call"
-          onClick={handleVoiceCallClick}
-        >
-          {isSpeakingToRoom ? <RecordVoiceOver /> : <VoiceOverOff />}
-        </MediaButton>
+    <div className="flex flex-col items-center justify-center px-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <MediaButton
+            isActive={isSpeakingToRoom}
+            aria-label={t('room.controls.microphoneControl')}
+            onClick={handleVoiceCallClick}
+          >
+            {isSpeakingToRoom ? (
+              <HugeiconsIcon
+                icon={Mic01Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={MicOff01Icon}
+                strokeWidth={1.8}
+                className="size-4"
+              />
+            )}
+          </MediaButton>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isSpeakingToRoom
+            ? t('room.controls.turnOffMicrophone')
+            : t('room.controls.turnOnMicrophone')}
+        </TooltipContent>
       </Tooltip>
       {audioDevices.length > 0 && isSpeakingToRoom && (
-        <Box sx={{ mt: 1 }}>
-          <List
-            component="nav"
-            aria-label="Microphone selection"
-            sx={{ bgcolor: 'background.paper' }}
-          >
-            <ListItem
-              button
-              id="audio-input-select-button"
-              aria-haspopup="listbox"
-              aria-controls="audio-input-select-menu"
-              aria-label="Microphone to use"
-              aria-expanded={isAudioDeviceSelectOpen ? 'true' : undefined}
-              onClick={handleAudioDeviceListItemClick}
-            >
-              <ListItemText
-                primary="Selected microphone"
-                secondary={audioDevices[selectedAudioDeviceIdx]?.label}
-              />
-            </ListItem>
-          </List>
-          <Menu
-            id="audio-input-select-menu"
-            anchorEl={audioAnchorEl}
-            open={isAudioDeviceSelectOpen}
-            onClose={handleAudioInputSelectMenuClose}
-            MenuListProps={{
-              'aria-labelledby': 'audio-input-select-button',
-              role: 'listbox',
-            }}
-          >
-            {audioDevices.map((audioDevice, idx) => (
-              <MenuItem
-                key={audioDevice.deviceId}
-                selected={idx === selectedAudioDeviceIdx}
-                onClick={event => handleAudioDeviceMenuItemClick(event, idx)}
+        <div className="mt-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                id="audio-input-select-button"
+                aria-haspopup="listbox"
+                aria-label={t('room.controls.microphoneToUse')}
+                className="cursor-pointer rounded-md bg-card px-3 py-2 text-left text-sm"
               >
-                {audioDevice.label}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Box>
+                <div className="text-xs text-muted-foreground">
+                  {t('room.controls.selectedMicrophone')}
+                </div>
+                <div>{audioDevices[selectedAudioDeviceIdx]?.label}</div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              id="audio-input-select-menu"
+              aria-labelledby="audio-input-select-button"
+              role="listbox"
+            >
+              {audioDevices.map((audioDevice, idx) => (
+                <DropdownMenuItem
+                  key={audioDevice.deviceId}
+                  className={idx === selectedAudioDeviceIdx ? 'bg-accent' : ''}
+                  onClick={() => handleAudioDeviceMenuItemClick(idx)}
+                >
+                  {audioDevice.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }

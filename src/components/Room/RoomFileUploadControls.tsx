@@ -1,14 +1,12 @@
 import { ChangeEventHandler, useContext, useRef } from 'react'
-import Box from '@mui/material/Box'
-import Folder from '@mui/icons-material/Folder'
-import FolderOff from '@mui/icons-material/FolderOff'
-import Tooltip from '@mui/material/Tooltip'
-import CircularProgress from '@mui/material/CircularProgress'
+import { Folder01Icon, FolderRemoveIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
 
 import { RoomContext } from 'contexts/RoomContext'
 import { PeerRoom } from 'lib/PeerRoom'
 
-import { Input } from 'components/Elements'
+import { Tooltip, TooltipTrigger, TooltipContent } from 'components/ui/tooltip'
 
 import { useRoomFileShare } from './useRoomFileShare'
 import { MediaButton } from './MediaButton'
@@ -22,6 +20,7 @@ export function RoomFileUploadControls({
   peerRoom,
   onInlineMediaUpload,
 }: RoomFileUploadControlsProps) {
+  const { t } = useTranslation()
   const roomContext = useContext(RoomContext)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -59,50 +58,52 @@ export function RoomFileUploadControls({
   }
 
   const shareFileLabel =
-    (sharedFiles && sharedFiles.length === 1 && sharedFiles[0].name) || 'files'
+    (sharedFiles && sharedFiles.length === 1 && sharedFiles[0].name) ||
+    t('room.controls.fileFallbackName')
 
   const disableFileUpload = !isFileSharingEnabled || isMessageSending
 
-  const buttonIcon = isSharingFile ? <Folder /> : <FolderOff />
+  const buttonIcon = isSharingFile ? (
+    <HugeiconsIcon icon={Folder01Icon} strokeWidth={1.8} className="size-4" />
+  ) : (
+    <HugeiconsIcon
+      icon={FolderRemoveIcon}
+      strokeWidth={1.8}
+      className="size-4"
+    />
+  )
 
   return (
-    <Box
-      sx={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        px: 1,
-      }}
-    >
-      <Input
+    <div className="flex flex-col items-center justify-center px-2">
+      <input
         multiple
         ref={fileInputRef}
         type="file"
         id="file-upload"
-        sx={{ display: 'none' }}
+        className="hidden"
         onChange={handleFileSelect}
       />
-      <Tooltip
-        title={
-          isSharingFile
-            ? `Stop sharing ${shareFileLabel}`
-            : 'Share files with the room'
-        }
-      >
-        <MediaButton
-          isActive={isSharingFile}
-          aria-label="share screen"
-          onClick={handleToggleScreenShareButtonClick}
-          disabled={disableFileUpload}
-        >
-          {isFileSharingEnabled ? (
-            buttonIcon
-          ) : (
-            <CircularProgress variant="indeterminate" color="inherit" />
-          )}
-        </MediaButton>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <MediaButton
+            isActive={isSharingFile}
+            aria-label={t('room.controls.shareFilesAria')}
+            onClick={handleToggleScreenShareButtonClick}
+            disabled={disableFileUpload}
+          >
+            {isFileSharingEnabled ? (
+              buttonIcon
+            ) : (
+              <div className="size-5 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+            )}
+          </MediaButton>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isSharingFile
+            ? t('room.controls.stopSharingFile', { name: shareFileLabel })
+            : t('room.controls.shareFiles')}
+        </TooltipContent>
       </Tooltip>
-    </Box>
+    </div>
   )
 }

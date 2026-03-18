@@ -68,6 +68,10 @@ const getRtcConfigEndpoint = (): string => {
   return getValidatedRtcConfigEndpoint() || '/api/get-config'
 }
 
+const isAbsoluteUrl = (value: string): boolean => {
+  return /^(?:[a-z]+:)?\/\//i.test(value)
+}
+
 /**
  * Constructs the API URL based on environment configuration
  *
@@ -75,6 +79,10 @@ const getRtcConfigEndpoint = (): string => {
  * @returns The complete URL to use for the API request
  */
 const getApiUrl = (endpoint: string): string => {
+  if (isAbsoluteUrl(endpoint)) {
+    return endpoint
+  }
+
   // In development, use environment variable if available, otherwise fall back to relative URL
   if (import.meta.env.DEV && import.meta.env.VITE_API_BASE_URL) {
     return `${import.meta.env.VITE_API_BASE_URL}${endpoint}`

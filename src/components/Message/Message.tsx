@@ -1,11 +1,6 @@
 import { HTMLAttributes } from 'react'
 import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 import YouTube from 'react-youtube'
-import Box from '@mui/material/Box'
-import Tooltip from '@mui/material/Tooltip'
-import Typography, { TypographyProps } from '@mui/material/Typography'
-import Link, { LinkProps } from '@mui/material/Link'
-import styled from '@mui/material/styles/styled'
 import { materialDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Markdown, { ExtraProps } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -18,10 +13,16 @@ import {
 } from 'models/chat'
 import { PeerNameDisplay } from 'components/PeerNameDisplay'
 import { CopyableBlock } from 'components/CopyableBlock/CopyableBlock'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from 'components/ui/tooltip'
 
 import { InlineMedia } from './InlineMedia'
 
-const StyledMarkdown = styled(Markdown)({})
+import { cn } from '@/lib/utils'
 
 export interface MessageProps {
   message: IMessage | I_InlineMedia
@@ -29,31 +30,30 @@ export interface MessageProps {
   userId: string
 }
 
-const typographyFactory =
-  (overrides: TypographyProps) => (args: HTMLAttributes<HTMLElement>) => {
-    return <Typography {...args} {...overrides} />
-  }
-
-const linkFactory =
-  (overrides: LinkProps) => (args: HTMLAttributes<HTMLElement>) => {
-    return <Link {...args} {...overrides} />
-  }
+const headingFactory =
+  (Tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6', className: string) =>
+  (args: HTMLAttributes<HTMLElement>) => (
+    <Tag {...args} className={cn(className, args.className)} />
+  )
 
 const componentMap = {
-  h1: typographyFactory({ variant: 'h1' }),
-  h2: typographyFactory({ variant: 'h2' }),
-  h3: typographyFactory({ variant: 'h3' }),
-  h4: typographyFactory({ variant: 'h4' }),
-  h5: typographyFactory({ variant: 'h5' }),
-  h6: typographyFactory({ variant: 'h6' }),
-  p: typographyFactory({ variant: 'body1' }),
-  a: linkFactory({
-    variant: 'body1',
-    underline: 'always',
-    color: 'primary.contrastText',
-    target: '_blank',
-    rel: 'noopener noreferrer',
-  }),
+  h1: headingFactory('h1', 'text-4xl font-bold'),
+  h2: headingFactory('h2', 'text-3xl font-bold'),
+  h3: headingFactory('h3', 'text-2xl font-bold'),
+  h4: headingFactory('h4', 'text-xl font-bold'),
+  h5: headingFactory('h5', 'text-lg font-bold'),
+  h6: headingFactory('h6', 'text-base font-bold'),
+  p: (args: HTMLAttributes<HTMLElement>) => (
+    <p {...args} className={cn('text-base', args.className)} />
+  ),
+  a: (args: HTMLAttributes<HTMLElement>) => (
+    <a
+      {...args}
+      className={cn('text-base underline text-inherit', args.className)}
+      target="_blank"
+      rel="noopener noreferrer"
+    />
+  ),
   // https://github.com/remarkjs/react-markdown#use-custom-components-syntax-highlight
   code({
     node,
@@ -99,83 +99,67 @@ const isYouTubeLink = (message: IMessage) => {
 }
 
 export const Message = ({ message, showAuthor, userId }: MessageProps) => {
-  let backgroundColor: string
+  const isOwn = message.authorId === userId
 
-  if (message.authorId === userId) {
-    backgroundColor = isMessageReceived(message)
-      ? 'primary.main'
-      : 'primary.light'
+  let bgClass: string
+  if (isOwn) {
+    bgClass = isMessageReceived(message)
+      ? 'bg-primary text-primary-foreground'
+      : 'bg-primary/70 text-primary-foreground'
   } else {
-    backgroundColor = 'secondary.main'
+    bgClass = 'bg-secondary text-secondary-foreground'
   }
 
   return (
-    <Box className="Message">
+    <div className="Message">
       {showAuthor && (
-        <Typography
-          variant="caption"
-          display="block"
-          sx={{
-            textAlign: message.authorId === userId ? 'right' : 'left',
-          }}
+        <span
+          className={cn('text-xs block', isOwn ? 'text-right' : 'text-left')}
         >
           <PeerNameDisplay>{message.authorId}</PeerNameDisplay>
-        </Typography>
+        </span>
       )}
-      <Tooltip
-        placement={
-          window.innerWidth >= spaceNeededForSideDateTooltip ? 'left' : 'top'
-        }
-        title={String(
-          Intl.DateTimeFormat(undefined, {
-            dateStyle: 'short',
-            timeStyle: 'short',
-          }).format(message.timeSent)
-        )}
-      >
-        <Box
-          sx={{
-            color:
-              message.authorId === userId
-                ? 'primary.contrastText'
-                : 'secondary.contrastText',
-            backgroundColor,
-            margin: 0.5,
-            padding: '0.5em 0.75em',
-            borderRadius: 6,
-            float: message.authorId === userId ? 'right' : 'left',
-            transition: 'background-color 1s',
-            wordBreak: 'break-word',
-          }}
-          maxWidth="85%"
-        >
-          {isInlineMedia(message) ? (
-            <InlineMedia magnetURI={message.magnetURI} />
-          ) : isYouTubeLink(message) ? (
-            <YouTube videoId={getYouTubeVideoId(message.text)} />
-          ) : (
-            <StyledMarkdown
-              components={componentMap}
-              remarkPlugins={[remarkGfm]}
-              sx={{
-                '& pre': {
-                  overflow: 'auto',
-                },
-                '& ol': {
-                  pl: 2,
-                  listStyleType: 'decimal',
-                },
-                '& ul': {
-                  pl: 2,
-                  listStyleType: 'disc',
-                },
-              }}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={cn(
+                bgClass,
+                'm-1 px-3 py-2 rounded-2xl max-w-[85%] transition-colors duration-1000 break-words',
+                isOwn ? 'float-right' : 'float-left'
+              )}
             >
-              {message.text}
-            </StyledMarkdown>
-          )}
-        </Box>
-      </Tooltip>
-    </Box>
+              {isInlineMedia(message) ? (
+                <InlineMedia magnetURI={message.magnetURI} />
+              ) : isYouTubeLink(message) ? (
+                <YouTube videoId={getYouTubeVideoId(message.text)} />
+              ) : (
+                <Markdown
+                  components={componentMap}
+                  remarkPlugins={[remarkGfm]}
+                  className="[&_pre]:overflow-auto [&_ol]:pl-4 [&_ol]:list-decimal [&_ul]:pl-4 [&_ul]:list-disc"
+                >
+                  {message.text}
+                </Markdown>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            side={
+              window.innerWidth >= spaceNeededForSideDateTooltip
+                ? 'left'
+                : 'top'
+            }
+          >
+            {String(
+              Intl.DateTimeFormat(undefined, {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              }).format(message.timeSent)
+            )}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
   )
 }

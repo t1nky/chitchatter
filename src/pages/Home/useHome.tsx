@@ -1,19 +1,22 @@
 import { ShellContext } from 'contexts/ShellContext'
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { RoomNameGenerator, RoomNameType } from 'lib/RoomNameGenerator'
 import { routerType } from 'config/router'
 import { RouterType } from 'models/router'
 
 const roomTypePrefixes = ['public', 'private']
 const roomTypePrefixesDelimitedForRegExp = roomTypePrefixes.join('|')
-const rRoomNameAppPrefix =
+const roomNameAppPrefixRegExp = new RegExp(
   routerType === RouterType.HASH
     ? `^${window.location.origin}/#/(${roomTypePrefixesDelimitedForRegExp})/`
     : `^${window.location.origin}/(${roomTypePrefixesDelimitedForRegExp})/`
+)
 
 export const useHome = () => {
   const { setTitle } = useContext(ShellContext)
+  const { t } = useTranslation()
   const [roomNameType, setRoomNameType] = useState<RoomNameType>(
     RoomNameType.PASSPHRASE
   )
@@ -24,12 +27,12 @@ export const useHome = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    setTitle('Chitchatter')
-  }, [setTitle])
+    setTitle(t('appName'))
+  }, [setTitle, t])
 
   const handleRoomNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
-    const baseRoomName = value.replace(new RegExp(rRoomNameAppPrefix), '')
+    const baseRoomName = value.replace(roomNameAppPrefixRegExp, '')
     setRoomName(baseRoomName)
   }
 

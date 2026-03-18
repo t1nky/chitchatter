@@ -1,10 +1,8 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import i18n from 'i18n'
 
 import { routes } from 'config/routes'
 
@@ -37,33 +35,35 @@ export class ErrorBoundary extends Component<Props, State> {
       const { name, message, stack } = this.state.error
 
       return (
-        <Box>
-          <Alert
-            severity="error"
-            action={
-              <IconButton
-                aria-label="close"
-                color="inherit"
-                size="small"
-                onClick={() => {
-                  this.setState({ error: null, showError: false })
-                }}
-              >
-                <Link to={routes.ROOT}>
-                  <CloseIcon fontSize="inherit" />
-                </Link>
-              </IconButton>
-            }
-          >
-            <Typography variant="h2">
-              <pre>{name}</pre>
-            </Typography>
-            <Typography variant="h3">
-              <code>{message}</code>
-            </Typography>
-            <pre>{stack}</pre>
-          </Alert>
-        </Box>
+        <div>
+          <div className="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold">
+                <pre>{name}</pre>
+              </h2>
+              <h3 className="text-lg">
+                <code>{message}</code>
+              </h3>
+              <pre className="mt-2 overflow-auto text-sm">{stack}</pre>
+            </div>
+            <button
+              type="button"
+              aria-label={i18n.t('dialogs.qrCode.close')}
+              className="inline-flex items-center justify-center rounded-md p-1 hover:bg-red-200 dark:hover:bg-red-900"
+              onClick={() => {
+                this.setState({ error: null, showError: false })
+              }}
+            >
+              <Link to={routes.ROOT}>
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  strokeWidth={1.8}
+                  className="size-4"
+                />
+              </Link>
+            </button>
+          </div>
+        </div>
       )
     }
 

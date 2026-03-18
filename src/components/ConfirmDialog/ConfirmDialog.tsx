@@ -1,11 +1,16 @@
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import WarningIcon from '@mui/icons-material/Warning'
+import { Alert02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useTranslation } from 'react-i18next'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'components/ui/dialog'
+import { Button } from 'components/ui/button'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -18,42 +23,38 @@ export const ConfirmDialog = ({
   onCancel,
   onConfirm,
 }: ConfirmDialogProps) => {
-  const handleDialogClose = () => {
-    onCancel()
-  }
+  const { t } = useTranslation()
 
   return (
     <Dialog
       open={isOpen}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-      onClose={handleDialogClose}
+      onOpenChange={open => {
+        if (!open) onCancel()
+      }}
     >
-      <DialogTitle id="alert-dialog-title">
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <WarningIcon
-            fontSize="medium"
-            sx={theme => ({
-              color: theme.palette.warning.main,
-              mr: theme.spacing(1),
-            })}
-          />
-          Are you sure?
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          This action cannot be undone.
-        </DialogContentText>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HugeiconsIcon
+              icon={Alert02Icon}
+              strokeWidth={1.8}
+              className="size-4"
+            />
+            {t('dialogs.confirm.title')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('dialogs.confirm.description')}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel} autoFocus>
+            {t('dialogs.confirm.cancel')}
+          </Button>
+          <Button variant="destructive" onClick={onConfirm}>
+            {t('dialogs.confirm.confirm')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onCancel} autoFocus>
-          Cancel
-        </Button>
-        <Button onClick={onConfirm} color="error">
-          Confirm
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }

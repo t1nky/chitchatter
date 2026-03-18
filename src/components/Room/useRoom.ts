@@ -1,5 +1,6 @@
 import { useDebounce } from '@react-hook/debounce'
 import { useContext, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { v4 as uuid } from 'uuid'
 
 import { getPeerName, usePeerNameDisplay } from 'components/PeerNameDisplay'
@@ -70,6 +71,7 @@ export function useRoom(
     timeService = time,
   }: UseRoomConfig
 ) {
+  const { t } = useTranslation()
   const isPrivate = password !== undefined
 
   const isDirectMessageRoom = typeof targetPeerId === 'string'
@@ -338,7 +340,12 @@ export function useRoom(
         })
 
         if (oldUsername !== newUsername) {
-          showAlert(`${oldUsername} is now ${newUsername}`)
+          showAlert(
+            t('room.peerRenamed', {
+              oldUsername,
+              newUsername,
+            })
+          )
         }
       }
     },
@@ -369,7 +376,7 @@ export function useRoom(
       const userSettings = settingsContext.getUserSettings()
 
       if (!isShowingMessages) {
-        setUnreadMessages(unreadMessages + 1)
+        setUnreadMessages(prev => prev + 1)
       }
 
       if (!tabHasFocus || !isShowingMessages) {
@@ -406,7 +413,9 @@ export function useRoom(
 
         if (userSettings.showNotificationOnNewMessage) {
           notification.showNotification(
-            `${getDisplayUsername(inlineMedia.authorId)} shared media`
+            t('room.sharedMedia', {
+              name: getDisplayUsername(inlineMedia.authorId),
+            })
           )
         }
       }
@@ -452,7 +461,7 @@ export function useRoom(
 
   if (!isDirectMessageRoom) {
     peerRoom.onPeerJoin(PeerHookType.NEW_PEER, (peerId: string) => {
-      showAlert(`Someone has joined the room`, {
+      showAlert(t('room.joined'), {
         severity: 'success',
       })
       ;(async () => {
@@ -488,11 +497,11 @@ export function useRoom(
       const doesPeerExist = peerIndex !== -1
 
       showAlert(
-        `${
-          doesPeerExist
+        t('room.left', {
+          name: doesPeerExist
             ? getDisplayUsername(peerList[peerIndex].userId)
-            : 'Someone'
-        } has left the room`,
+            : t('room.someone'),
+        }),
         {
           severity: 'warning',
         }
@@ -511,8 +520,8 @@ export function useRoom(
 
   const showVideoDisplay = Boolean(
     selfVideoStream ||
-      selfScreenStream ||
-      Object.values({ ...peerVideoStreams, ...peerScreenStreams }).length > 0
+    selfScreenStream ||
+    Object.values({ ...peerVideoStreams, ...peerScreenStreams }).length > 0
   )
 
   if (!showVideoDisplay && !isShowingMessages) setIsShowingMessages(true)
@@ -574,6 +583,7 @@ export function useRoom(
     publicKey,
     encryptionService,
     isDirectMessageRoom,
+    t,
   ])
 
   useEffect(() => {

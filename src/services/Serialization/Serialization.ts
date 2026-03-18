@@ -1,8 +1,10 @@
 import { ColorMode, isLanguage, UserSettings } from 'models/settings'
 import { AllowedKeyType, encryption } from 'services/Encryption'
 
-export interface SerializedUserSettings
-  extends Omit<UserSettings, 'publicKey' | 'privateKey'> {
+export interface SerializedUserSettings extends Omit<
+  UserSettings,
+  'publicKey' | 'privateKey'
+> {
   publicKey: string
   privateKey: string
 }

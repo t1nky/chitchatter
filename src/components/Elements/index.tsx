@@ -1,9 +1,17 @@
-import styled from '@mui/material/styles/styled'
+import { forwardRef, type ComponentPropsWithRef } from 'react'
 
-// NOTE: These components are defined to enable raw DOM elements to be styled
-// with MUI's sx prop.
-// @see https://mui.com/system/styled/
-// @see https://mui.com/system/getting-started/the-sx-prop/
-export const Form = styled('form')({})
-export const Input = styled('input')({})
-export const Main = styled('main')({})
+export const Form = forwardRef<HTMLFormElement, ComponentPropsWithRef<'form'>>(
+  (props, ref) => <form ref={ref} {...props} />
+)
+Form.displayName = 'Form'
+
+export const Input = forwardRef<
+  HTMLInputElement,
+  ComponentPropsWithRef<'input'>
+>((props, ref) => <input ref={ref} {...props} />)
+Input.displayName = 'Input'
+
+export const Main = forwardRef<HTMLElement, ComponentPropsWithRef<'main'>>(
+  (props, ref) => <main ref={ref} {...props} />
+)
+Main.displayName = 'Main'

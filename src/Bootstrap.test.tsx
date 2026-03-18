@@ -2,6 +2,9 @@ import { vi } from 'vitest'
 import { act, render } from '@testing-library/react'
 import persistedStorage from 'localforage'
 
+import i18n from 'i18n'
+import { TooltipProvider } from 'components/ui/tooltip'
+import { Language } from 'models/settings'
 import { PersistedStorageKeys } from 'models/storage'
 import {
   mockSerialization,
@@ -20,12 +23,14 @@ const userSettingsStub = userSettingsStubFactory()
 
 const renderBootstrap = async (overrides: Partial<BootstrapProps> = {}) => {
   render(
-    <Bootstrap
-      persistedStorage={persistedStorage}
-      initialUserSettings={userSettingsStub}
-      serializationService={mockSerialization}
-      {...overrides}
-    />
+    <TooltipProvider>
+      <Bootstrap
+        persistedStorage={persistedStorage}
+        initialUserSettings={userSettingsStub}
+        serializationService={mockSerialization}
+        {...overrides}
+      />
+    </TooltipProvider>
   )
 
   // https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning#an-alternative-waiting-for-the-mocked-promise
@@ -66,4 +71,17 @@ test('updates persisted user settings', async () => {
       selectedSound: DEFAULT_SOUND,
     }
   )
+})
+
+test('syncs i18n language from user settings', async () => {
+  const changeLanguageSpy = vi.spyOn(i18n, 'changeLanguage')
+
+  await renderBootstrap({
+    initialUserSettings: {
+      ...userSettingsStub,
+      language: Language.SPANISH,
+    },
+  })
+
+  expect(changeLanguageSpy).toHaveBeenCalledWith(Language.SPANISH)
 })
