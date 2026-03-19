@@ -35,12 +35,8 @@ export function useRoomScreenShare({ peerRoom }: UseRoomScreenShareConfig) {
     setPeerAudioChannels,
   } = shellContext
 
-  const {
-    peerScreenStreams,
-    selfScreenStream,
-    setPeerScreenStreams,
-    setSelfScreenStream,
-  } = roomContext
+  const { selfScreenStream, setPeerScreenStreams, setSelfScreenStream } =
+    roomContext
 
   const [sendScreenShare] = usePeerAction<ScreenShareState>({
     namespace: ActionNamespace.GROUP,
@@ -75,10 +71,10 @@ export function useRoomScreenShare({ peerRoom }: UseRoomScreenShareConfig) {
 
     if (!isScreenShareStream) return
 
-    setPeerScreenStreams({
-      ...peerScreenStreams,
+    setPeerScreenStreams(prev => ({
+      ...prev,
       [peerId]: stream,
-    })
+    }))
 
     const [audioStream] = stream.getAudioTracks()
 
@@ -168,8 +164,9 @@ export function useRoomScreenShare({ peerRoom }: UseRoomScreenShareConfig) {
   }, [setPeerScreenStreams])
 
   const deletePeerScreen = (peerId: string) => {
-    setPeerScreenStreams(({ [peerId]: _, ...newPeerScreens }) => {
-      return newPeerScreens
+    setPeerScreenStreams(prev => {
+      const { [peerId]: _, ...rest } = prev
+      return rest
     })
 
     setPeerAudioChannels(({ ...newPeerAudios }) => {

@@ -6,7 +6,6 @@ import { ChatTranscript } from 'components/ChatTranscript'
 import { WholePageLoading } from 'components/Loading'
 import { MessageForm } from 'components/MessageForm'
 import { Separator } from 'components/ui/separator'
-import { rtcConfig as staticRtcConfig } from 'config/rtcConfig'
 import { trackerUrls } from 'config/trackerUrls'
 import { RoomContext } from 'contexts/RoomContext'
 import { SettingsContext } from 'contexts/SettingsContext'
@@ -72,14 +71,14 @@ const RoomCore = ({
       relayUrls: trackerUrls,
       password,
       relayRedundancy: 4,
-      rtcConfig: import.meta.env.VITE_IS_E2E_TEST
-        ? { iceServers: [] }
-        : {
-            iceServers: [
-              ...(staticRtcConfig.iceServers ?? []),
-              ...(turnConfig.iceServers ?? []),
-            ],
-          },
+      turnConfig: turnConfig.iceServers,
+      // NOTE: Avoid using STUN severs in the E2E tests in order to make them
+      // run faster
+      ...(import.meta.env.VITE_IS_E2E_TEST && {
+        rtcConfig: {
+          iceServers: [],
+        },
+      }),
     },
     {
       roomId,
@@ -111,7 +110,7 @@ const RoomCore = ({
         <div className="flex grow flex-col overflow-auto">
           {!isDirectMessageRoom && (
             <div
-              className={`flex items-start justify-center overflow-visible h-0 relative top-2 transition-all duration-300 ${
+              className={`flex items-start justify-center overflow-visible h-0 relative top-2 z-10 transition-all duration-300 ${
                 showRoomControls
                   ? 'scale-100 opacity-100'
                   : 'pointer-events-none scale-0 opacity-0'

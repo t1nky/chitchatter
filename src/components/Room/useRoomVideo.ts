@@ -28,12 +28,8 @@ export function useRoomVideo({ peerRoom }: UseRoomVideoConfig) {
 
   const { setPeerList, setVideoState } = shellContext
 
-  const {
-    peerVideoStreams,
-    selfVideoStream,
-    setPeerVideoStreams,
-    setSelfVideoStream,
-  } = roomContext
+  const { selfVideoStream, setPeerVideoStreams, setSelfVideoStream } =
+    roomContext
 
   useEffect(() => {
     ;(async () => {
@@ -107,10 +103,10 @@ export function useRoomVideo({ peerRoom }: UseRoomVideoConfig) {
 
     if (!isWebcamStream) return
 
-    setPeerVideoStreams({
-      ...peerVideoStreams,
+    setPeerVideoStreams(prev => ({
+      ...prev,
       [peerId]: stream,
-    })
+    }))
   })
 
   const cleanupVideo = useCallback(() => {
@@ -209,9 +205,10 @@ export function useRoomVideo({ peerRoom }: UseRoomVideoConfig) {
   }
 
   const deletePeerVideo = (peerId: string) => {
-    const newPeerVideos = { ...peerVideoStreams }
-    delete newPeerVideos[peerId]
-    setPeerVideoStreams(newPeerVideos)
+    setPeerVideoStreams(prev => {
+      const { [peerId]: _, ...rest } = prev
+      return rest
+    })
   }
 
   const handleVideoForNewPeer = (peerId: string) => {
