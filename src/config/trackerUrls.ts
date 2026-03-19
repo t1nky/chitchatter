@@ -6,14 +6,22 @@ let trackerUrls: string[] | undefined = [
   //
   // See the default tracker list for examples of what to use:
   // https://github.com/dmotz/trystero/blob/694f49974974cc9df8b621db09215d6df10fad09/src/torrent.js#L27-L33
+  'wss://tracker.openwebtorrent.com/',
+  'wss://tracker.webtorrent.dev/',
 ]
 
 // If a tracker URL has been provided via the VITE_TRACKER_URL environment
 // variable, prioritize using it. This is mainly relevant for local development
 // when using the `npm run dev` script. If you are hosting your own Chitchatter
 // instance, consider populating the trackerUrls above instead.
-if (import.meta.env.VITE_TRACKER_URL) {
-  trackerUrls.unshift(import.meta.env.VITE_TRACKER_URL)
+const trackerUrlOverride = import.meta.env.VITE_TRACKER_URL?.trim()
+
+if (
+  trackerUrlOverride &&
+  trackerUrlOverride.toLowerCase() !== 'undefined' &&
+  trackerUrlOverride.toLowerCase() !== 'null'
+) {
+  trackerUrls.unshift(trackerUrlOverride)
 }
 
 // If no tracker URL overrides have been provided, set trackerUrls to undefined

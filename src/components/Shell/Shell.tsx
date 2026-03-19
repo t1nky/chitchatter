@@ -13,7 +13,12 @@ import { useTranslation } from 'react-i18next'
 
 import { ErrorBoundary } from 'components/ErrorBoundary'
 import { AppSidebar } from 'components/app-sidebar'
-import { Sheet, SheetContent } from 'components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from 'components/ui/sheet'
 import { SidebarProvider } from 'components/ui/sidebar'
 import { SettingsContext } from 'contexts/SettingsContext'
 import {
@@ -468,6 +473,12 @@ export const Shell = ({ appNeedsUpdate, children, userPeerId }: ShellProps) => {
                   className="w-[280px] p-0"
                   showCloseButton={false}
                 >
+                  <div className="sr-only">
+                    <SheetTitle>{t('peerList.list')}</SheetTitle>
+                    <SheetDescription>
+                      {t('peerList.searching')}
+                    </SheetDescription>
+                  </div>
                   <PeerList
                     userId={userPeerId}
                     roomId={roomId}

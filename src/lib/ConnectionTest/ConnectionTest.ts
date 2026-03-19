@@ -26,6 +26,9 @@ export class ConnectionTest extends EventTarget {
 
   rtcPeerConnection?: RTCPeerConnection
   rtcConfig: RTCConfiguration
+  hasHostCheckTimeout?: ReturnType<typeof setTimeout>
+  hasTURNServerCheckTimeout?: ReturnType<typeof setTimeout>
+  rtcIceCandidateListener?: (event: RTCPeerConnectionIceEvent) => void
 
   constructor(rtcConfig: RTCConfiguration) {
     super()
@@ -35,13 +38,15 @@ export class ConnectionTest extends EventTarget {
   async initRtcPeerConnectionTest() {
     if (typeof RTCPeerConnection === 'undefined') return
 
+    this.destroyRtcPeerConnectionTest()
+
     const { iceServers } = this.rtcConfig
 
     this.rtcPeerConnection = new RTCPeerConnection({
       iceServers,
     })
 
-    const hasHostCheckTimeout = setTimeout(() => {
+    this.hasHostCheckTimeout = setTimeout(() => {
       this.hasHost = false
 
       this.dispatchEvent(
@@ -51,7 +56,7 @@ export class ConnectionTest extends EventTarget {
       )
     }, checkExperationTime)
 
-    const hasTURNServerCheckTimeout = setTimeout(() => {
+    this.hasTURNServerCheckTimeout = setTimeout(() => {
       this.hasTURNServer = false
 
       this.dispatchEvent(
@@ -61,20 +66,20 @@ export class ConnectionTest extends EventTarget {
       )
     }, checkExperationTime)
 
-    this.rtcPeerConnection.addEventListener('icecandidate', event => {
+    this.rtcIceCandidateListener = event => {
       if (event.candidate?.candidate.length) {
         const parsedCandidate = parseCandidate(event.candidate.candidate)
         let eventType: ConnectionTestEvents | undefined
 
         switch (parsedCandidate.type) {
           case 'host':
-            clearTimeout(hasHostCheckTimeout)
+            clearTimeout(this.hasHostCheckTimeout)
             this.hasHost = window.navigator.onLine
             eventType = ConnectionTestEvents.HAS_HOST_CHANGED
             break
 
           case 'relay':
-            clearTimeout(hasTURNServerCheckTimeout)
+            clearTimeout(this.hasTURNServerCheckTimeout)
             this.hasTURNServer = window.navigator.onLine
             eventType = ConnectionTestEvents.HAS_RELAY_CHANGED
             break
@@ -92,7 +97,12 @@ export class ConnectionTest extends EventTarget {
           new Event(ConnectionTestEvents.CONNECTION_TEST_RESULTS_UPDATED)
         )
       }
-    })
+    }
+
+    this.rtcPeerConnection.addEventListener(
+      'icecandidate',
+      this.rtcIceCandidateListener
+    )
 
     // Kick off the connection test
     try {
@@ -100,12 +110,28 @@ export class ConnectionTest extends EventTarget {
         offerToReceiveAudio: true,
       })
 
-      this.rtcPeerConnection.setLocalDescription(rtcSessionDescription)
-    } catch (_e) {}
+      await this.rtcPeerConnection.setLocalDescription(rtcSessionDescription)
+    } catch (_e) {
+      this.destroyRtcPeerConnectionTest()
+    }
   }
 
   destroyRtcPeerConnectionTest() {
+    clearTimeout(this.hasHostCheckTimeout)
+    clearTimeout(this.hasTURNServerCheckTimeout)
+
+    if (this.rtcPeerConnection && this.rtcIceCandidateListener) {
+      this.rtcPeerConnection.removeEventListener(
+        'icecandidate',
+        this.rtcIceCandidateListener
+      )
+    }
+
     this.rtcPeerConnection?.close()
+    this.rtcPeerConnection = undefined
+    this.rtcIceCandidateListener = undefined
+    this.hasHostCheckTimeout = undefined
+    this.hasTURNServerCheckTimeout = undefined
   }
 
   testTrackerConnection() {

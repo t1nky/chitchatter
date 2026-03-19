@@ -8,7 +8,6 @@ import {
   ConnectionTestEvents,
   TrackerConnection,
 } from 'lib/ConnectionTest'
-import { sleep } from 'lib/sleep'
 
 export interface ConnectionTestResults {
   hasHost: boolean
@@ -39,16 +38,18 @@ export const useConnectionTest = () => {
       return
     }
 
+    let isDisposed = false
+    let activeRtcConnectionTest: ConnectionTest | null = null
+    let rtcPollTimeout: ReturnType<typeof setTimeout> | undefined
+    let trackerPollTimeout: ReturnType<typeof setTimeout> | undefined
+
     const checkRtcConnection = async () => {
       const connectionTest = new ConnectionTest(turnConfig)
+      activeRtcConnectionTest?.destroyRtcPeerConnectionTest()
+      activeRtcConnectionTest = connectionTest
 
       const handleHasHostChanged = ((event: ConnectionTestEvent) => {
         setHasHost(event.detail.hasHost)
-
-        connectionTest.removeEventListener(
-          ConnectionTestEvents.HAS_HOST_CHANGED,
-          handleHasHostChanged
-        )
       }) as EventListener
 
       connectionTest.addEventListener(
@@ -58,11 +59,6 @@ export const useConnectionTest = () => {
 
       const handleHasRelayChanged = ((event: ConnectionTestEvent) => {
         setHasTURNServer(event.detail.hasTURNServer)
-
-        connectionTest.removeEventListener(
-          ConnectionTestEvents.HAS_RELAY_CHANGED,
-          handleHasRelayChanged
-        )
       }) as EventListener
 
       connectionTest.addEventListener(
@@ -70,7 +66,7 @@ export const useConnectionTest = () => {
         handleHasRelayChanged
       )
 
-      setTimeout(() => {
+      const detachListeners = () => {
         connectionTest.removeEventListener(
           ConnectionTestEvents.HAS_HOST_CHANGED,
           handleHasHostChanged
@@ -79,41 +75,78 @@ export const useConnectionTest = () => {
           ConnectionTestEvents.HAS_RELAY_CHANGED,
           handleHasRelayChanged
         )
-      }, rtcPollInterval)
+      }
 
       try {
         await connectionTest.initRtcPeerConnectionTest()
       } catch (e) {
-        setHasHost(false)
-        setHasTURNServer(false)
+        if (!isDisposed) {
+          setHasHost(false)
+          setHasTURNServer(false)
+        }
         console.error(e)
       }
 
-      return connectionTest
-    }
+      return () => {
+        detachListeners()
 
-    ;(async () => {
-      while (true) {
-        const connectionTest = await checkRtcConnection()
-        await sleep(rtcPollInterval)
-        connectionTest.destroyRtcPeerConnectionTest()
-      }
-    })()
-    ;(async () => {
-      while (true) {
-        try {
-          const connectionTest = new ConnectionTest(turnConfig)
-          const trackerConnectionTestResult =
-            connectionTest.testTrackerConnection()
-
-          setTrackerConnection(trackerConnectionTestResult)
-        } catch (_e) {
-          setTrackerConnection(TrackerConnection.FAILED)
+        if (activeRtcConnectionTest === connectionTest) {
+          activeRtcConnectionTest = null
         }
 
-        await sleep(trackerPollInterval)
+        connectionTest.destroyRtcPeerConnectionTest()
       }
-    })()
+    }
+
+    const scheduleRtcConnectionCheck = async () => {
+      if (isDisposed) {
+        return
+      }
+
+      const cleanupConnectionTest = await checkRtcConnection()
+
+      if (isDisposed) {
+        cleanupConnectionTest()
+        return
+      }
+
+      rtcPollTimeout = setTimeout(() => {
+        cleanupConnectionTest()
+        void scheduleRtcConnectionCheck()
+      }, rtcPollInterval)
+    }
+
+    const scheduleTrackerConnectionCheck = () => {
+      if (isDisposed) {
+        return
+      }
+
+      try {
+        const connectionTest = new ConnectionTest(turnConfig)
+        const trackerConnectionTestResult =
+          connectionTest.testTrackerConnection()
+
+        setTrackerConnection(trackerConnectionTestResult)
+      } catch (_e) {
+        setTrackerConnection(TrackerConnection.FAILED)
+      }
+
+      trackerPollTimeout = setTimeout(
+        scheduleTrackerConnectionCheck,
+        trackerPollInterval
+      )
+    }
+
+    void scheduleRtcConnectionCheck()
+    scheduleTrackerConnectionCheck()
+
+    return () => {
+      isDisposed = true
+      clearTimeout(rtcPollTimeout)
+      clearTimeout(trackerPollTimeout)
+      activeRtcConnectionTest?.destroyRtcPeerConnectionTest()
+      activeRtcConnectionTest = null
+    }
   }, [turnConfig, isConfigLoading])
 
   return {

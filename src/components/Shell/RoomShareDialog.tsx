@@ -126,11 +126,13 @@ export function RoomShareDialog(props: RoomShareDialogProps) {
                 </Button>
               )}
             </div>
-            {isAdvanced && (
-              <DialogDescription>
-                {t('dialogs.roomShare.advancedDescription')}
-              </DialogDescription>
-            )}
+            <DialogDescription>
+              {t(
+                isAdvanced
+                  ? 'dialogs.roomShare.advancedDescription'
+                  : 'dialogs.roomShare.copyUrlTooltip'
+              )}
+            </DialogDescription>
           </DialogHeader>
           {isAdvanced && (
             <div className="grid gap-3">

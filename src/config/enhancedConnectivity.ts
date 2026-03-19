@@ -39,7 +39,6 @@ export const getRtcConfigEndpoint = (): string | null => {
   const trimmedEndpoint = endpoint.trim()
 
   if (!trimmedEndpoint) {
-    console.error('VITE_RTC_CONFIG_ENDPOINT cannot be empty')
     return null
   }
 

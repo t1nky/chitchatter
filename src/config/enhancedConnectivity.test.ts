@@ -129,15 +129,13 @@ describe('enhancedConnectivity', () => {
       consoleSpy.mockRestore()
     })
 
-    test('logs error and returns null for empty string', async () => {
+    test('returns null for empty string without logging an extra error', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       import.meta.env.VITE_RTC_CONFIG_ENDPOINT = ''
       vi.resetModules()
       const { getRtcConfigEndpoint } = await import('./enhancedConnectivity')
       expect(getRtcConfigEndpoint()).toBe(null)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'VITE_RTC_CONFIG_ENDPOINT cannot be empty'
-      )
+      expect(consoleSpy).not.toHaveBeenCalled()
       consoleSpy.mockRestore()
     })
 
