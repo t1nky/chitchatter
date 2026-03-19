@@ -1,0 +1,2 @@
+e.displayName=`editorconfig`,e.aliases=[];function e(e){e.languages.editorconfig={comment:/[;#].*/,section:{pattern:/(^[ \t]*)\[.+\]/m,lookbehind:!0,alias:`selector`,inside:{regex:/\\\\[\[\]{},!?.*]/,operator:/[!?]|\.\.|\*{1,2}/,punctuation:/[\[\]{},]/}},key:{pattern:/(^[ \t]*)[^\s=]+(?=[ \t]*=)/m,lookbehind:!0,alias:`attr-name`},value:{pattern:/=.*/,alias:`attr-value`,inside:{punctuation:/^=/}}}}export{e as default};
+//# sourceMappingURL=editorconfig-C_2zOzlc.js.map

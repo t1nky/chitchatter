@@ -1,0 +1,2 @@
+import e from"./scheme-Qox6X88L.js";t.displayName=`racket`,t.aliases=[`rkt`];function t(t){t.register(e),t.languages.racket=t.languages.extend(`scheme`,{"lambda-parameter":{pattern:/([(\[]lambda\s+[(\[])[^()\[\]'\s]+/,lookbehind:!0}}),t.languages.insertBefore(`racket`,`string`,{lang:{pattern:/^#lang.+/m,greedy:!0,alias:`keyword`}}),t.languages.rkt=t.languages.racket}export{t as default};
+//# sourceMappingURL=racket-C7lV9QbC.js.map

@@ -1,0 +1,2 @@
+import e from"./csharp-WneWSALZ.js";import t from"./t4-templating-BMSrgQZD.js";n.displayName=`t4-cs`,n.aliases=[`t4`];function n(n){n.register(e),n.register(t),n.languages.t4=n.languages[`t4-cs`]=n.languages[`t4-templating`].createT4(`csharp`)}export{n as default};
+//# sourceMappingURL=t4-cs-LFeaGSZG.js.map
